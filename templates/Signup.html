@@ -11,6 +11,16 @@
   <div class="signup-container">
     <h2>Sign up</h2>
     <p>Let's get you all set up so you can access your personal account.</p>
+   
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
     <form method="POST">
       <div class="input-row">
