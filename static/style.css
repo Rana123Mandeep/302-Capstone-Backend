@@ -132,3 +132,13 @@ a:hover {
         font-size: 12px;
     }
 }
+
+.alert-success {
+    background-color: white;
+    color:red;
+}
+
+.alert-danger {
+    background-color: white;
+    color: #721c24;
+}
