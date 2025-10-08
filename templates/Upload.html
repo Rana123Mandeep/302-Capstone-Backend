@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Product - Marketplace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="{{ url_for('products') }}" class="btn back-btn" title="Back to Products">←</a>
+      <h2>Upload Product</h2>
+    </div>
+    
+    <div class="nav-right">
+      <!-- User Icon - Logout -->
+      <div class="user-icon-container">
+        <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
+        <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Upload Form Container -->
+  <div class="upload-container">
+    <div class="upload-form-wrapper">
+      <h1>Upload Your Product</h1>
+      <p class="upload-description">Fill in the details below to list your product on the marketplace</p>
+      
+      <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+        <div class="form-group">
+          <label for="title">Product Title:</label>
+          <input type="text" name="title" id="title" placeholder="Enter product name" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price">Price ($):</label>
+            <input type="number" name="price" id="price" placeholder="0.00" step="0.01" min="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="category">Category:</label>
+            <select name="category" id="category" required>
+              <option value="">Select category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Sports">Sports</option>
+              <option value="Home">Home & Garden</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="condition">Condition:</label>
+          <select name="condition" id="condition" required>
+            <option value="">Select condition</option>
+            <option value="New">New</option>
+            <option value="Like New">Like New</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="features">Product Description:</label>
+          <textarea name="features" id="features" placeholder="Describe your product, include key features and specifications..." rows="4" required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="image">Product Image:</label>
+          <div class="file-input-wrapper">
+            <input type="file" name="image" id="image" accept="image/*" required>
+            <label for="image" class="file-input-label">
+              <span class="file-icon">📁</span>
+              <span class="file-text">Choose image file</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('products') }}'">Cancel</button>
+          <button type="submit" class="btn-primary">Upload Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function toggleLogout() {
+      const logoutText = document.getElementById('logoutText');
+      const isVisible = logoutText.style.display !== 'none';
+      
+      if (isVisible) {
+        logoutText.style.display = 'none';
+      } else {
+        logoutText.style.display = 'inline-block';
+      }
+    }
+    
+    function logout() {
+      window.location.href = "{{ url_for('logout') }}";
+    }
+    
+    // File input enhancement
+    document.getElementById('image').addEventListener('change', function(e) {
+      const fileName = e.target.files[0]?.name;
+      const fileText = document.querySelector('.file-text');
+      if (fileName) {
+        fileText.textContent = fileName;
+      } else {
+        fileText.textContent = 'Choose image file';
+      }
+    });
+  </script>
+</body>
+</html>
