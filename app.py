@@ -4,6 +4,8 @@ from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 app = Flask(__name__)  
@@ -18,9 +20,10 @@ migrate=Migrate(app, db)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = "customercarethriftstore@gmail.com"   
-app.config['MAIL_PASSWORD'] =  "your_16_char_app_password"     
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME") 
+app.config['MAIL_PASSWORD'] =   os.getenv("MAIL_PASSWORD")
 mail = Mail(app)
+
 
 
 
@@ -112,13 +115,46 @@ def Signup():
         except Exception as e:
             db.session.rollback()
             return f"Error: {e}"
-
+        
+        
     return render_template("Signup.html")
-@app.route('/')
+   
+        
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+
+       
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            flash("No account found with that email. Please sign up first.", "danger")
+            return redirect(url_for("login"))
+
+   
+        if check_password_hash(user.password, password):
+            flash(f"Welcome back, {user.first_name}! Login successful.",  "success")
+            return redirect(url_for("login")) 
+        else:
+            flash("Incorrect password. Please try again.", "danger")
+            return redirect(url_for("login"))
+
+    
+    return render_template("login.html")
+
+
+@app.route("/")
 def index():
     return render_template("index.html")
 
 
 
+@app.route("/forgot-password")
+def forgot_password():
+    return render_template("ForgotPassword.html")
 if __name__ == "__main__":
     app.run(debug=True)
