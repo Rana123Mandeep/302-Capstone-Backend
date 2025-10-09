@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
+from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -25,6 +26,13 @@ app.config['MAIL_PASSWORD'] =   os.getenv("MAIL_PASSWORD")
 mail = Mail(app)
 
 
+UPLOAD_FOLDER = "static/uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 class User(db.Model):
@@ -36,6 +44,55 @@ class User(db.Model):
     last_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(512), nullable=False)
+
+class Products(db .Model):
+    __tabblename__="products"
+
+    id = db.Column(db.Integer, primary_key=True)
+    Producttitle = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    condition = db.Column(db.String(50), nullable=False)
+    Productdescription = db.Column(db.Text, nullable=False)
+    image_filename = db.Column(db.String(200), nullable=False)
+
+    
+
+@app.route("/upload" , methods=["GET", "POST"])
+def upload():
+     if request.method == "POST":
+        Producttitle = request.form["title"]
+        price = request.form["price"]
+        category = request.form["category"]
+        condition = request.form["condition"]
+        Productdescription = request.form["features"]
+        file = request.files["image"]
+
+        if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                file.save(filepath)
+
+                new_product = Products(
+                    Producttitle=Producttitle,
+                    price=price,
+                    category=category,
+                    condition=condition,
+                    Productdescription=Productdescription,
+                    image_filename=filename
+                )
+                db.session.add(new_product)
+                db.session.commit()
+
+                flash("✅ Product uploaded successfully!", "success")
+                return redirect(url_for("products"))
+     else:
+                flash("⚠️ Please upload a valid image file (png, jpg, jpeg, gif).", "danger")
+    
+     return render_template("Upload.html")
+
+            
+      
 
 @app.route('/user')
 def add_user():
@@ -152,6 +209,23 @@ def index():
     return render_template("index.html")
 
 
+
+
+@app.route("/products")
+def products():
+    all_products =Products.query.all()
+    return render_template("Products.html" ,products=all_products)
+
+
+@app. route("/message_seller/<int:item_id>")
+def message_seller(item_id):
+      return f"This is a placeholder page for messaging item {item_id}"
+
+
+@app.route("/logout")
+def logout():
+  
+    return redirect(url_for("login"))
 
 @app.route("/forgot-password")
 def forgot_password():
