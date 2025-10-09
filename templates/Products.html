@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <h2>Marketplace</h2>
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search products..." onkeyup="searchProducts()">
+      </div>
+      <!-- Sell Button -->
+      <a href="{{ url_for('upload') }}" class="btn">Sell</a> <!-- Updated to navigate to the upload page -->
+      <button class="btn active">Categories</button>
+    </div>
+    
+    <div class="nav-right">
+      <!-- User Icon - Logout -->
+      <div class="user-icon-container">
+        <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
+        <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
+      </div>
+    </div>
+  </nav>
+  <!-- Products Grid -->
+  <div class="products">
+    {% for product in products %}
+    <div class="product">
+      <a href="{{ url_for('message_seller', item_id=loop.index0) }}" class="product-image-link">
+       <img src="{{ url_for('static', filename='uploads/' ~ product.image_filename) }}" alt="{{ product.Producttitle }}" 
+      </a>
+      <div class="product-info">
+        <p class="product-name">{{ product.name }}</p>
+        <p class="product-price">${{ product.price }}</p> <!-- Added $ before product.price -->
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    function toggleLogout() {
+      const logoutText = document.getElementById('logoutText');
+      const isVisible = logoutText.style.display !== 'none';
+      
+      if (isVisible) {
+        logoutText.style.display = 'none';
+      } else {
+        logoutText.style.display = 'inline-block';
+      }
+    }
+    
+    function logout() {
+      window.location.href = "{{ url_for('logout') }}";
+    }
+    
+    function searchProducts() {
+      const searchInput = document.getElementById('searchInput');
+      const searchTerm = searchInput.value.toLowerCase();
+      const products = document.querySelectorAll('.product');
+      
+      products.forEach(product => {
+        const productName = product.querySelector('.product-name').textContent.toLowerCase();
+        const productPrice = product.querySelector('.product-price').textContent.toLowerCase();
+        
+        // Check if search term matches product name or price
+        if (productName.includes(searchTerm) || productPrice.includes(searchTerm)) {
+          product.style.display = 'flex'; // Show the product
+        } else {
+          product.style.display = 'none'; // Hide the product
+        }
+      });
+      
+      // If search is empty, show all products
+      if (searchTerm === '') {
+        products.forEach(product => {
+          product.style.display = 'flex';
+        });
+      }
+    }
+  </script>
+</body>
+</html>
