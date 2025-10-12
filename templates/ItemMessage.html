@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Message Seller - {{ item.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!--Navbar-->
+    <nav class="navbar">
+        <div class="nav-left">
+            <h2>{{ item.name }}</h2>
+        </div>
+        
+        <div class="nav-right">
+            <!-- User Icon - Logout -->
+            <div class="user-icon-container">
+                <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
+                <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
+            </div>
+        </div>
+    </nav>
+
+    <!--Item Message Container-->
+    <div class="item-message-container">
+        <!--Item Details-->
+        <div class="item-details">
+            <div class="item-image">
+                <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
+            </div>
+            <div class="item-info">
+                <h1>{{ item.name }}</h1>
+                <p class="item-price">${{ item.price }}</p>
+                {% if item.category %}
+                    <p class="item-category"><strong>Category:</strong> {{ item.category }}</p>
+                {% endif %}
+                {% if item.condition %}
+                    <p class="item-condition"><strong>Condition:</strong> {{ item.condition }}</p>
+                {% endif %}
+                {% if item.features %}
+                    <p class="item-description"><strong>Description:</strong> {{ item.features }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!--Message Box-->
+        <div class="message-box">
+            <h2>Send Message to Seller</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                💬 Sending a message will start a chat conversation with the seller
+            </p>
+            <form action="{{ url_for('message_seller', item_id=item_id) }}" method="POST">
+                <textarea name="message" placeholder="Hi, is this item available?" rows="4" required></textarea>
+                <div class="message-actions">
+                    <div class="spacer"></div>
+                    <!--Action Icons-->
+                    <div class="action-icons">
+                        <span title="Enable Notifications" onclick="toggleNotifications()" id="notificationIcon">🔔</span>
+                        <span class="save-btn" title="{% if is_in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}" onclick="toggleWishlist('{{ item_id }}')" id="wishlistIcon">
+                            {% if is_in_wishlist %}★{% else %}☆{% endif %}
+                        </span>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" onclick="window.location.href='{{ url_for('products') }}'" class="btn-secondary">Cancel</button>
+                        <button type="button" onclick="window.location.href='{{ url_for('chat_with_seller', item_id=item_id) }}'" class="btn-chat">💬 Start Chat</button>
+                        <button type="submit" class="btn-primary">📤 Send & Chat</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pop-up Notification -->
+    <div id="notification-popup" class="notification-popup">
+        <div class="notification-content">
+            <span class="notification-icon" id="notificationEmoji">⭐</span>
+            <span class="notification-text">Item saved to wishlist!</span>
+            <span class="close-notification" onclick="closeNotification()">✕</span>
+        </div>
+    </div>
+
+    <script>
+        function toggleLogout() {
+            const logoutText = document.getElementById('logoutText');
+            const isVisible = logoutText.style.display !== 'none';
+            
+            if (isVisible) {
+                logoutText.style.display = 'none';
+            } else {
+                logoutText.style.display = 'inline-block';
+            }
+        }
+        
+        function logout() {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+        
+        function toggleNotifications() {
+            const icon = document.getElementById('notificationIcon');
+            const isEnabled = icon.classList.contains('enabled');
+            
+            if (isEnabled) {
+                icon.classList.remove('enabled');
+                icon.textContent = '🔔';
+                icon.title = 'Enable Notifications';
+                alert('Notifications disabled for this item');
+            } else {
+                icon.classList.add('enabled');
+                icon.textContent = '🔕';
+                icon.title = 'Disable Notifications';
+                alert('Notifications enabled! You will be notified of price changes and updates');
+            }
+        }
+        
+        function toggleWishlist(itemId) {
+            // Send AJAX request to toggle item in wishlist
+            fetch(`/toggle_wishlist/${itemId}?ajax=1`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the icon and tooltip based on the new state
+                    const wishlistIcon = document.getElementById('wishlistIcon');
+                    const notificationText = document.querySelector('.notification-text');
+                    const notificationEmoji = document.getElementById('notificationEmoji');
+                    
+                    if (data.is_in_wishlist) {
+                        // Item was added to wishlist
+                        wishlistIcon.innerHTML = '★';
+                        wishlistIcon.title = 'Remove from Wishlist';
+                        notificationText.textContent = 'Item added to wishlist!';
+                        notificationEmoji.textContent = '⭐';
+                    } else {
+                        // Item was removed from wishlist
+                        wishlistIcon.innerHTML = '☆';
+                        wishlistIcon.title = 'Add to Wishlist';
+                        notificationText.textContent = 'Item removed from wishlist!';
+                        notificationEmoji.textContent = '🗑️';
+                    }
+                    
+                    showNotification();
+                } else {
+                    alert(data.message || 'Failed to update wishlist');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating wishlist');
+            });
+        }
+        
+        function showNotification() {
+            const popup = document.getElementById('notification-popup');
+            const notificationText = document.querySelector('.notification-text');
+            const notificationContent = document.querySelector('.notification-content');
+            
+            // Change color based on action
+            if (notificationText.textContent.includes('removed')) {
+                notificationContent.style.background = '#f44336'; // Red for removal
+            } else {
+                notificationContent.style.background = '#4CAF50'; // Green for addition
+            }
+            
+            popup.style.display = 'flex';
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                closeNotification();
+            }, 3000);
+        }
+        
+        function closeNotification() {
+            const popup = document.getElementById('notification-popup');
+            popup.style.display = 'none';
+        }
+
+        // Add form submission feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageForm = document.querySelector('form[action*="message"]');
+            const submitButton = document.querySelector('.btn-primary');
+            
+            if (messageForm && submitButton) {
+                messageForm.addEventListener('submit', function(e) {
+                    // Change button text to show loading state
+                    submitButton.innerHTML = '📤 Sending...';
+                    submitButton.disabled = true;
+                    
+                    // Show user feedback
+                    const textarea = document.querySelector('textarea[name="message"]');
+                    if (textarea && textarea.value.trim()) {
+                        // Create a temporary notification
+                        const tempNotification = document.createElement('div');
+                        tempNotification.style.cssText = `
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: #007BFF;
+                            color: white;
+                            padding: 15px 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                            z-index: 1000;
+                            font-size: 14px;
+                            animation: slideIn 0.3s ease-out;
+                        `;
+                        tempNotification.innerHTML = '💬 Starting chat conversation...';
+                        document.body.appendChild(tempNotification);
+                        
+                        // Remove notification after form submits
+                        setTimeout(() => {
+                            if (tempNotification.parentNode) {
+                                tempNotification.remove();
+                            }
+                        }, 2000);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
