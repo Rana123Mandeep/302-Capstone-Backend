@@ -25,7 +25,7 @@ app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] =   os.getenv("MAIL_PASSWORD")
 mail = Mail(app)
 
-
+#Setup config the upload the file  
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -34,7 +34,7 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
+#Table for Singnup&Login
 class User(db.Model):
     __tablename__= "users"
 
@@ -44,7 +44,7 @@ class User(db.Model):
     last_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(512), nullable=False)
-
+#Table for upload file in products 
 class Products(db .Model):
     __tabblename__="products"
 
@@ -68,7 +68,7 @@ def upload():
         Productdescription = request.form["features"]
         file = request.files["image"]
 
-        if file and allowed_file(file.filename):
+        if file and allowed_file(file.filename):#uplaod file from device 
                 filename = secure_filename(file.filename)
                 filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
                 file.save(filepath)
@@ -221,6 +221,50 @@ def products():
 def message_seller(item_id):
       return f"This is a placeholder page for messaging item {item_id}"
 
+
+
+@app.route("/itemmessage/<int:item_id>")
+def item_message(item_id):
+    item = Products.query.get(item_id)
+    if not item:
+        # Handle missing product
+        return f"❌ Item with ID {item_id} not found.", 404
+
+    # Prepare the item data for template
+    item_data = {
+        "name": item.Producttitle,
+        "price": item.price,
+        "category": item.category,
+        "condition": item.condition,
+        "features": item.Productdescription,
+        "image": f"uploads/{item.image_filename}"  # image path in static folder
+    }
+
+
+    # ✅ return the rendered template
+    return render_template(
+        "ItemMessage.html",
+        item=item_data,
+        item_id=item_id,
+      
+    )
+
+
+@app.route("/chat_with_seller/<int:item_id>")
+def chat_with_seller(item_id):
+   item = Products.query.get(item_id)
+   if not item:
+        return f" Item with ID {item_id} not found", 404
+    
+    # For now, render the same ItemMessage page
+        return render_template("ItemMessage.html", item=item, item_id=item_id, is_in_wishlist=False)
+
+
+
+@app.route("/wishlist")
+def wishlist():
+  
+    return render_template("wishlist.html")
 
 @app.route("/logout")
 def logout():
