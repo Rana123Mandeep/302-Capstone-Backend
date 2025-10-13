@@ -22,8 +22,13 @@
     </div>
     
     <div class="nav-right">
+      <!-- Wishlist Icon -->
+      <a href="{{ url_for('wishlist') }}" class="wishlist-icon" title="View Wishlist">❤️</a>
+    
+    <div class="nav-right">
       <!-- User Icon - Logout -->
       <div class="user-icon-container">
+
         <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
         <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
       </div>
@@ -33,12 +38,14 @@
   <div class="products">
     {% for product in products %}
     <div class="product">
-      <a href="{{ url_for('message_seller', item_id=loop.index0) }}" class="product-image-link">
-       <img src="{{ url_for('static', filename='uploads/' ~ product.image_filename) }}" alt="{{ product.Producttitle }}" 
+    <a href="{{ url_for('item_message', item_id=product.id) }}" class="product-image-link"> <!--This link uplate the iamge and product details in itemmessage.html-->
+
+      <img src="{{ url_for('static', filename='uploads/' ~ product.image_filename) }}" alt="{{ product.Producttitle }}" 
       </a>
       <div class="product-info">
         <p class="product-name">{{ product. Producttitle }}</p>
         <p class="product-price">${{ product.price }}</p> <!-- Added $ before product.price -->
+        
       </div>
     </div>
     {% endfor %}
