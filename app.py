@@ -266,10 +266,31 @@ def wishlist():
   
     return render_template("wishlist.html")
 
+@app.route("/search")
+def search():
+    query = request.args.get('q', '').strip()
+
+    if not query:
+        # If empty search, show all products
+        results = Products.query.all()
+    else:
+        # Search by title, description, or category
+        results = Products.query.filter(
+            (Products.Producttitle.ilike(f"%{query}%")) |
+            (Products.Productdescription.ilike(f"%{query}%")) |
+            (Products.category.ilike(f"%{query}%"))
+        ).all()
+
+ 
+    return render_template("Products.html", products=results)
+     
+
 @app.route("/logout")
 def logout():
   
     return redirect(url_for("login"))
+
+
 
 @app.route("/forgot-password")
 def forgot_password():
