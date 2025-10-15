@@ -13,9 +13,12 @@
     <div class="nav-left">
       <h2>Marketplace</h2>
       <!-- Search Bar -->
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search products..." onkeyup="searchProducts()">
-      </div>
+  <div class="search-bar">
+  <form action="{{ url_for('search') }}" method="get">
+    <input type="text" name="q" id="searchInput" placeholder="Search products...">
+    <button type="submit">Search</button>
+  </form>
+</div>
       <!-- Sell Button -->
       <a href="{{ url_for('upload') }}" class="btn">Sell</a> <!-- Updated to navigate to the upload page -->
       <button class="btn active">Categories</button>
