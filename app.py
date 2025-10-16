@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 load_dotenv()
+from flask import session
 
 
 app = Flask(__name__)  
@@ -54,8 +55,65 @@ class Products(db .Model):
     category = db.Column(db.String(50), nullable=False)
     condition = db.Column(db.String(50), nullable=False)
     Productdescription = db.Column(db.Text, nullable=False)
-    image_filename = db.Column(db.String(200), nullable=False)
+    image_filename = db.Column(db.String(200), nullable=False) 
 
+    #Table for Wishlist 
+class Wishlist(db.Model):
+    __tablename__ = "wishlist"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+
+    user = db.relationship("User", backref="wishlist_items", lazy=True)
+    product = db.relationship("Products", backref="wishlisted_by", lazy=True)
+
+#Route for add product in wishlist
+@app.route("/add_to_wishlist/<int:product_id>")
+def add_to_wishlist(product_id):
+    if "user_id" not in session:
+        flash("Please login first to add the item in Wishlist.","Warning")
+        return redirect(url_for("login"))
+    user_id = session["user_id"]
+    existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
+
+    if existing:
+        flash("Item already in your wishlist!", "info")
+    else:
+        new_item = Wishlist(user_id=user_id, product_id=product_id)
+        db.session.add(new_item)
+        db.session.commit()
+        flash("Item added to wishlist!", "success")
+
+    return redirect(url_for("Products"))
+
+#Route for remove item from wishlist 
+@app.route("/remove_from_wishlist/<int:item_id>")
+def remove_from_wishlist(item_id):
+    if "user_id" not in session:
+     return redirect(url_for("login"))
+    user_id = session["user_id"]
+    item = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first()
+
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        flash("Item removed from wishlist.", "success")
+
+    return redirect(url_for("wishlist"))
+
+#wishlist 
+@app.route("/wishlist")
+def wishlist():
+#    if "user_id" not in session:
+#         flash("Please login first to view your Wishlist.","Warning")
+#         return redirect(url_for("login"))
+#    user_id = session["user_id"]
+#    wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
+#    products = [item.product for item in wishlist_items]
+   
+   return render_template("wishlist.html")
+        
     
 
 @app.route("/upload" , methods=["GET", "POST"])
@@ -195,7 +253,7 @@ def login():
    
         if check_password_hash(user.password, password):
             flash(f"Welcome back, {user.first_name}! Login successful.",  "success")
-            return redirect(url_for("login")) 
+            return redirect(url_for("products")) 
         else:
             flash("Incorrect password. Please try again.", "danger")
             return redirect(url_for("login"))
@@ -204,9 +262,11 @@ def login():
     return render_template("login.html")
 
 
+
+
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("login.html")
 
 
 
@@ -261,11 +321,7 @@ def chat_with_seller(item_id):
 
 
 
-@app.route("/wishlist")
-def wishlist():
-  
-    return render_template("wishlist.html")
-
+#Search Function
 @app.route("/search")
 def search():
     query = request.args.get('q', '').strip()
@@ -280,9 +336,12 @@ def search():
             (Products.Productdescription.ilike(f"%{query}%")) |
             (Products.category.ilike(f"%{query}%"))
         ).all()
+        
+    message = None if results else "No matching products found."# message if serched item not found 
+
 
  
-    return render_template("Products.html", products=results)
+    return render_template("Products.html", products=results, message= message)
      
 
 @app.route("/logout")

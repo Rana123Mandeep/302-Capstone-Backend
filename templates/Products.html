@@ -19,6 +19,7 @@
     <button type="submit">Search</button>
   </form>
 </div>
+
       <!-- Sell Button -->
       <a href="{{ url_for('upload') }}" class="btn">Sell</a> <!-- Updated to navigate to the upload page -->
       <button class="btn active">Categories</button>
@@ -37,6 +38,11 @@
       </div>
     </div>
   </nav>
+  {% if message %}
+  <p style="text-align:center; color: red; font-weight: bold; margin-top: 20px;">
+    {{ message }}
+  </p>
+{% endif %}
   <!-- Products Grid -->
   <div class="products">
     {% for product in products %}

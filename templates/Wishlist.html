@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wishlist - Marketplace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <h2>My Wishlist</h2>
+    </div>
+    
+    <div class="nav-right">
+      <!-- User Icon - Logout -->
+      <div class="user-icon-container">
+        <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
+        <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Wishlist Container -->
+  <div class="wishlist-container">
+    <div class="wishlist-header">
+      <h1>Your Saved Items</h1>
+      <p class="wishlist-count">{{ products|length }} item{% if products|length != 1 %}s{% endif %} in your wishlist</p>
+    </div>
+
+    {% if products %}
+      <!-- Wishlist Grid -->
+      <div class="wishlist-grid">
+        {% for product in products %}
+        <div class="wishlist-item">
+          <a href="{{ url_for('message_seller', item_id=product.item_id) }}" class="product-image-link">
+            <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+          </a>
+          <div class="wishlist-item-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-price">${{ product.price }}</p>
+            {% if product.category %}
+              <p class="product-category">{{ product.category }}</p>
+            {% endif %}
+            <div class="primary-action">
+              <a href="{{ url_for('message_seller', item_id=product.item_id) }}" class="btn-primary">Message Seller</a>
+            </div>
+            <div class="wishlist-actions">
+              <a href="{{ url_for('remove_from_wishlist', item_id=product.item_id) }}" class="btn-remove" onclick="return confirm('Remove this item from your wishlist?')">Remove</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <!-- Empty Wishlist -->
+      <div class="empty-wishlist">
+        <div class="empty-icon">💔</div>
+        <h2>Your wishlist is empty</h2>
+        <p>Start adding items you love to see them here!</p>
+        <a href="{{ url_for('products') }}" class="btn-primary">Browse Products</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function toggleLogout() {
+      const logoutText = document.getElementById('logoutText');
+      const isVisible = logoutText.style.display !== 'none';
+      
+      if (isVisible) {
+        logoutText.style.display = 'none';
+      } else {
+        logoutText.style.display = 'inline-block';
+      }
+    }
+    
+    function logout() {
+      window.location.href = "{{ url_for('logout') }}";
+    }
+  </script>
+</body>
+</html>
