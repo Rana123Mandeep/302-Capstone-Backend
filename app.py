@@ -8,12 +8,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from flask import session
-
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 app = Flask(__name__)  
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift store _db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.urandom(24)
+s = URLSafeTimedSerializer(app.secret_key)#for forgot password
 db = SQLAlchemy()
 db.init_app(app)
 migrate=Migrate(app, db)
@@ -24,6 +25,7 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME") 
 app.config['MAIL_PASSWORD'] =   os.getenv("MAIL_PASSWORD")
+ 
 mail = Mail(app)
 
 #Setup config the upload the file  
@@ -351,8 +353,94 @@ def logout():
 
 
 
-@app.route("/forgot-password")
+@app.route("/forgot-password",methods=["GET","POST"])
 def forgot_password():
+    if request.method == "POST":
+        email = request.form["email"]
+   
+
+       
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            flash ("No account found with that e-mail", "danger")
+            return redirect(url_for("forgot_password"))
+        
+         # Create token
+        token = s.dumps(email, salt="password-reset")
+        print("Generated token:", token)
+
+        # Build a proper local link
+        reset_link = url_for("reset_password", token=token, _external=True)
+        reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")
+        print("Reset link for testing:", reset_link)
+
+
+        # Send email
+        msg = Message(
+            subject="🔑Password Reset Request",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[email]
+        )
+        msg.body = f"""
+        Hi {user.first_name},
+
+      
+        Click the link below to reset your password:
+        {reset_link}
+
+        This link will expire in 1 hour.
+         
+         Best regards,  
+            Thrift Store App Team
+        """
+
+    
+
+        mail.send(msg)
+
+        flash("✅ A password reset link has been sent to your email.", "success")
+        return redirect(url_for("login")) 
+
+
+
     return render_template("ForgotPassword.html")
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    try:
+        email = s.loads(token, salt="password-reset", max_age=3600)
+            
+    except (SignatureExpired, BadSignature):
+        flash("The reset link is invalid or has expired.", "danger")
+        return redirect(url_for("forgot_password"))
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("Invalid email!", "danger")
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        if new_password != confirm_password:
+            flash("Passwords do not match!", "danger")
+            return redirect(url_for("reset_password", token=token))
+
+        user.password = generate_password_hash(new_password)
+        db.session.commit()
+        flash("Password updated successfully!", "success")
+        return redirect(url_for('login'))
+
+    return render_template("ResetPassword.html")
+
+
+@app.route("/reset-password/", methods=["GET", "POST"])
+def reset_password_missing_token():
+    flash("Invalid or missing password reset token.", "danger")
+    return redirect(url_for("forgot_password"))
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+  app.run(host="0.0.0.0", port=5000, debug=True)

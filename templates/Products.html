@@ -22,8 +22,20 @@
 
       <!-- Sell Button -->
       <a href="{{ url_for('upload') }}" class="btn">Sell</a> <!-- Updated to navigate to the upload page -->
-      <button class="btn active">Categories</button>
-    </div>
+        <div class="categories-dropdown" id="categoriesDropdown">
+        <button class="btn active" id="categoriesBtn" onclick="toggleCategories()">Categories ▼</button>
+        <div class="categories-menu" id="categoriesMenu">
+          <div class="filter-section">
+            <h4>Filter by Category</h4>
+            <select id="categoryFilter">
+              <option value="">All Categories</option>
+              <option value="electronics">Electronics</option>
+              <option value="clothing">Clothing</option>
+              <option value="fashion">Fashion</option>
+              <option value="books">Books</option>
+              <option value="home">Home & Garden</option>
+            </select>
+          </div>
     
     <div class="nav-right">
       <!-- Wishlist Icon -->
@@ -39,7 +51,7 @@
     </div>
   </nav>
   {% if message %}
-  <p style="text-align:center; color: red; font-weight: bold; margin-top: 20px;">
+  <p style="text-align:center; color: red; font-weight: bold; margin-top: 20px;"><!--this line depicts the messge if search item not found -->
     {{ message }}
   </p>
 {% endif %}
@@ -61,45 +73,253 @@
   </div>
 
   <script>
-    function toggleLogout() {
-      const logoutText = document.getElementById('logoutText');
-      const isVisible = logoutText.style.display !== 'none';
+     let searchTimeout;
+    let allProducts = [];
+    
+    // Store original products on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const productElements = document.querySelectorAll('.product');
+      allProducts = Array.from(productElements).map((element, index) => ({
+        element: element,
+        name: element.dataset.name,
+        category: element.dataset.category,
+        price: parseFloat(element.dataset.price),
+        features: element.dataset.features,
+        condition: element.dataset.condition || 'good',
+        index: index
+      }));
+    });
+    
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('userMenu');
+      const userIcon = document.querySelector('.user-icon');
       
-      if (isVisible) {
-        logoutText.style.display = 'none';
+      userMenu.classList.toggle('active');
+      
+      if (userMenu.classList.contains('active')) {
+        userIcon.classList.add('active');
       } else {
-        logoutText.style.display = 'inline-block';
+        userIcon.classList.remove('active');
       }
+    }
+    
+    function closeUserMenu() {
+      const userMenu = document.getElementById('userMenu');
+      const userIcon = document.querySelector('.user-icon');
+      
+      userMenu.classList.remove('active');
+      userIcon.classList.remove('active');
+    }
+    
+    function viewProfile() {
+      // Add profile functionality here
+      alert('Profile page coming soon!');
+      closeUserMenu();
+    }
+    
+    function viewSettings() {
+      // Add settings functionality here
+      alert('Settings page coming soon!');
+      closeUserMenu();
     }
     
     function logout() {
       window.location.href = "{{ url_for('logout') }}";
     }
     
-    function searchProducts() {
-      const searchInput = document.getElementById('searchInput');
-      const searchTerm = searchInput.value.toLowerCase();
-      const products = document.querySelectorAll('.product');
+    function toggleCategories() {
+      const categoriesMenu = document.getElementById('categoriesMenu');
+      const categoriesBtn = document.getElementById('categoriesBtn');
       
-      products.forEach(product => {
-        const productName = product.querySelector('.product-name').textContent.toLowerCase();
-        const productPrice = product.querySelector('.product-price').textContent.toLowerCase();
-        
-        // Check if search term matches product name or price
-        if (productName.includes(searchTerm) || productPrice.includes(searchTerm)) {
-          product.style.display = 'flex'; // Show the product
-        } else {
-          product.style.display = 'none'; // Hide the product
-        }
-      });
+      categoriesMenu.classList.toggle('active');
       
-      // If search is empty, show all products
-      if (searchTerm === '') {
-        products.forEach(product => {
-          product.style.display = 'flex';
-        });
+      if (categoriesMenu.classList.contains('active')) {
+        categoriesBtn.textContent = 'Categories ▲';
+        categoriesBtn.classList.add('filter-active');
+      } else {
+        categoriesBtn.textContent = 'Categories ▼';
+        categoriesBtn.classList.remove('filter-active');
       }
     }
+    
+    function closeCategories() {
+      const categoriesMenu = document.getElementById('categoriesMenu');
+      const categoriesBtn = document.getElementById('categoriesBtn');
+      
+      categoriesMenu.classList.remove('active');
+      categoriesBtn.textContent = 'Categories ▼';
+      categoriesBtn.classList.remove('filter-active');
+    }
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      const categoriesDropdown = document.getElementById('categoriesDropdown');
+      const categoriesMenu = document.getElementById('categoriesMenu');
+      const userDropdown = document.getElementById('userDropdown');
+      const userMenu = document.getElementById('userMenu');
+      
+      // Close categories dropdown
+      if (!categoriesDropdown.contains(event.target) && categoriesMenu.classList.contains('active')) {
+        closeCategories();
+      }
+      
+      // Close user dropdown
+      if (!userDropdown.contains(event.target) && userMenu.classList.contains('active')) {
+        closeUserMenu();
+      }
+    });
+    
+    function performSearch() {
+      // Clear previous timeout
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+      
+      // Debounce search for better performance
+      searchTimeout = setTimeout(() => {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+        const category = document.getElementById('categoryFilter').value.toLowerCase();
+        const condition = document.getElementById('conditionFilter').value.toLowerCase();
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+        
+        // Show/hide clear button
+        const clearBtn = document.getElementById('clearSearch');
+        clearBtn.style.display = searchTerm ? 'inline' : 'none';
+        
+        // Filter products
+        let filteredProducts = allProducts.filter(product => {
+          // Text search
+          if (searchTerm) {
+            const searchableText = `${product.name} ${product.category} ${product.features}`;
+            if (!searchableText.includes(searchTerm)) {
+              return false;
+            }
+          }
+          
+          // Category filter
+          if (category && category !== product.category) {
+            return false;
+          }
+          
+          // Condition filter
+          if (condition && condition !== product.condition) {
+            return false;
+          }
+          
+          // Price range filter
+          if (minPrice && product.price < parseFloat(minPrice)) {
+            return false;
+          }
+          if (maxPrice && product.price > parseFloat(maxPrice)) {
+            return false;
+          }
+          
+          return true;
+        });
+        
+        // Update display
+        updateProductDisplay(filteredProducts, searchTerm, category, condition, minPrice, maxPrice);
+        
+      }, 300); // 300ms delay for better UX
+    }
+    
+    function updateProductDisplay(filteredProducts, searchTerm, category, condition, minPrice, maxPrice) {
+      const container = document.getElementById('productsContainer');
+      const noResults = document.getElementById('noResults');
+      const searchInfo = document.getElementById('searchInfo');
+      
+      // Hide all products first
+      allProducts.forEach(product => {
+        product.element.style.display = 'none';
+      });
+      
+      // Show filtered products
+      filteredProducts.forEach(product => {
+        product.element.style.display = 'flex';
+      });
+      
+      // Update search info
+      let searchInfoText = '';
+      if (searchTerm || category || condition || minPrice || maxPrice) {
+        const totalProducts = allProducts.length;
+        const foundProducts = filteredProducts.length;
+        
+        searchInfoText = `Showing ${foundProducts} of ${totalProducts} products`;
+        
+        if (searchTerm) searchInfoText += ` for "${searchTerm}"`;
+        if (category) searchInfoText += ` in ${category.charAt(0).toUpperCase() + category.slice(1)}`;
+        if (condition) searchInfoText += ` (${condition.charAt(0).toUpperCase() + condition.slice(1)} condition)`;
+        if (minPrice || maxPrice) {
+          searchInfoText += ` ($${minPrice || '0'} - $${maxPrice || '∞'})`;
+        }
+        
+        searchInfo.textContent = searchInfoText;
+        searchInfo.style.display = 'block';
+      } else {
+        searchInfo.style.display = 'none';
+      }
+      
+      // Show/hide no results message
+      if (filteredProducts.length === 0 && (searchTerm || category || condition || minPrice || maxPrice)) {
+        noResults.style.display = 'block';
+        container.style.display = 'none';
+      } else {
+        noResults.style.display = 'none';
+        container.style.display = 'grid';
+      }
+    }
+    
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('categoryFilter').value = '';
+      document.getElementById('conditionFilter').value = '';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      document.getElementById('clearSearch').style.display = 'none';
+      
+      // Show all products
+      allProducts.forEach(product => {
+        product.element.style.display = 'flex';
+      });
+      
+      // Hide search info and no results
+      document.getElementById('searchInfo').style.display = 'none';
+      document.getElementById('noResults').style.display = 'none';
+      document.getElementById('productsContainer').style.display = 'grid';
+    }
+    
+    function applyFilters() {
+      performSearch();
+      closeCategories();
+    }
+    
+    function clearFilters() {
+      document.getElementById('categoryFilter').value = '';
+      document.getElementById('conditionFilter').value = '';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      performSearch();
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Focus search on Ctrl+F or Cmd+F
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+      
+      // Clear search on Escape
+      if (e.key === 'Escape') {
+        clearSearch();
+      }
+    });
+    
+    // Auto-focus search input
+    document.getElementById('searchInput').addEventListener('focus', function() {
+      this.select(); // Select all text when focused
+    });
   </script>
 </body>
 </html>
