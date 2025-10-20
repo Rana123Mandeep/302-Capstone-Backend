@@ -79,7 +79,22 @@
     <!-- Pop-up Notification -->
     <div id="notification-popup" class="notification-popup">
         <div class="notification-content">
-            <span class="notification-icon" id="notificationEmoji">⭐</span>
+   {% if 'user_id' in session %}
+  <!-- User logged in: show active/inactive star -->
+  <a href="{{ url_for('toggle_wishlist', product_id=product.id) }}" style="text-decoration: none;">
+    {% set wishlisted = Wishlist.query.filter_by(user_id=session['user_id'], product_id=product.id).first() %}
+    {% if wishlisted %}
+      <span style="color: gold;">⭐</span>
+    {% else %}
+      <span style="color: gray;">☆</span>
+    {% endif %}
+  </a>
+{% else %}
+  <!-- User NOT logged in: clicking star takes them to login -->
+  <a href="{{ url_for('login') }}" style="text-decoration: none;">
+    <span style="color: gray;">☆</span>
+  </a>
+{% endif %}
             <span class="notification-text">Item saved to wishlist!</span>
             <span class="close-notification" onclick="closeNotification()">✕</span>
         </div>

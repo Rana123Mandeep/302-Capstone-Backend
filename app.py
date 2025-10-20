@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 from flask import session
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from flask import jsonify, request
+
 
 app = Flask(__name__)  
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift store _db'
@@ -71,50 +73,39 @@ class Wishlist(db.Model):
     product = db.relationship("Products", backref="wishlisted_by", lazy=True)
 
 #Route for add product in wishlist
-@app.route("/add_to_wishlist/<int:product_id>")
-def add_to_wishlist(product_id):
-    if "user_id" not in session:
-        flash("Please login first to add the item in Wishlist.","Warning")
-        return redirect(url_for("login"))
-    user_id = session["user_id"]
-    existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
+@app.route("/toggle_wishlist/<int:product_id>")
+def toggle_wishlist(product_id):
+     user_id = session.get("user_id")
+     if "user_id" not in session:
+         flash("Please login first to view your Wishlist.","Warning")
+         return redirect(url_for("login"))
+     existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
 
-    if existing:
-        flash("Item already in your wishlist!", "info")
-    else:
-        new_item = Wishlist(user_id=user_id, product_id=product_id)
-        db.session.add(new_item)
-        db.session.commit()
-        flash("Item added to wishlist!", "success")
+     if existing:
+            db.session.delete(existing)
+            db.session.commit()
+            flash("Item removed from wishlist.", "info")
+     else:
+            new_item = Wishlist(user_id=user_id, product_id=product_id)
+            db.session.add(new_item)
+            db.session.commit()
+            flash("Item added to wishlist!", "success")
 
-    return redirect(url_for("Products"))
-
-#Route for remove item from wishlist 
-@app.route("/remove_from_wishlist/<int:item_id>")
-def remove_from_wishlist(item_id):
-    if "user_id" not in session:
-     return redirect(url_for("login"))
-    user_id = session["user_id"]
-    item = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first()
-
-    if item:
-        db.session.delete(item)
-        db.session.commit()
-        flash("Item removed from wishlist.", "success")
-
-    return redirect(url_for("wishlist"))
+            # Return to the same page you came from
+            return redirect(request.referrer or url_for("wishlist"))
 
 #wishlist 
 @app.route("/wishlist")
 def wishlist():
-#    if "user_id" not in session:
-#         flash("Please login first to view your Wishlist.","Warning")
-#         return redirect(url_for("login"))
-#    user_id = session["user_id"]
-#    wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
-#    products = [item.product for item in wishlist_items]
+    user_id = session["user_id"]
+    if "user_id" not in session:
+        flash("Please login first to view your Wishlist.","Warning")
+        return redirect(url_for("login"))
+
+    wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
+    products = [item.product for item in wishlist_items]
    
-   return render_template("wishlist.html")
+    return render_template("wishlist.html")
         
     
 
@@ -278,6 +269,19 @@ def products():
     all_products =Products.query.all()
     return render_template("Products.html" ,products=all_products)
 
+@app.route("/category/")
+def all_categories():
+    products = Products.query.all()
+    message = None if products else "No products found."
+    return render_template("Products.html", products=products, message=message)
+
+
+@app.route("/category/<category_name>")
+def category(category_name):
+    products = Products.query.filter_by(category=category_name).all()
+    message = None if products else "No products found in this category."
+    return render_template("Products.html", products=products, message=message)
+
 
 @app. route("/message_seller/<int:item_id>")
 def message_seller(item_id):
@@ -432,7 +436,7 @@ def reset_password(token):
         flash("Password updated successfully!", "success")
         return redirect(url_for('login'))
 
-    return render_template("ResetPassword.html")
+    return render_template("ResetPassword.html",token=token)
 
 
 @app.route("/reset-password/", methods=["GET", "POST"])

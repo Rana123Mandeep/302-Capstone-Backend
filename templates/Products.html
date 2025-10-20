@@ -27,13 +27,13 @@
         <div class="categories-menu" id="categoriesMenu">
           <div class="filter-section">
             <h4>Filter by Category</h4>
-            <select id="categoryFilter">
+            <select id="categoryFilter" onchange="filterCategory()">
               <option value="">All Categories</option>
-              <option value="electronics">Electronics</option>
-              <option value="clothing">Clothing</option>
-              <option value="fashion">Fashion</option>
-              <option value="books">Books</option>
-              <option value="home">Home & Garden</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Books">Books</option>
+              <option value="Car">Car</option>
             </select>
           </div>
     
@@ -168,6 +168,16 @@
         closeUserMenu();
       }
     });
+    function filterCategory() {
+  const selected = document.getElementById("categoryFilter").value;
+  
+  // Redirect to the correct route
+  if (selected === "") {
+    window.location.href = "/category/";  // all categories
+  } else {
+    window.location.href = "/category/" + selected;  // specific category
+  }
+}
     
     function performSearch() {
       // Clear previous timeout
@@ -320,6 +330,16 @@
     document.getElementById('searchInput').addEventListener('focus', function() {
       this.select(); // Select all text when focused
     });
+//     function filterCategory() {
+//     var category = document.getElementById("categoryFilter").value;
+//     if(category) {
+//         window.location.href = "/category/" + category;
+//     } else {
+//         window.location.href = "/products"; // show all products
+//     }
+// }
+
+    
   </script>
 </body>
 </html>
