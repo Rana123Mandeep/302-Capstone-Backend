@@ -97,7 +97,7 @@ def toggle_wishlist(product_id):
 
 #wishlist 
 @app.route("/wishlist")
-def wishlist():
+def Wishlist():
     user_id = session["user_id"]
     if "user_id" not in session:
         flash("Please login first to view your Wishlist.","Warning")
@@ -138,8 +138,8 @@ def upload():
 
                 flash("✅ Product uploaded successfully!", "success")
                 return redirect(url_for("products"))
-     else:
-                flash("⚠️ Please upload a valid image file (png, jpg, jpeg, gif).", "danger")
+    #  else:
+    #             flash("⚠️ Please upload a valid image file (png, jpg, jpeg, gif).", "danger")
     
      return render_template("Upload.html")
 
@@ -380,9 +380,17 @@ def forgot_password():
         print("Generated token:", token)
 
         # Build a proper local link
+        # reset_link = url_for("reset_password", token=token, _external=True)
+        # reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")
+        # print("Reset link for testing:", reset_link)
         reset_link = url_for("reset_password", token=token, _external=True)
-        reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")
+
+# Fix local development host
+        reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")  
+        reset_link = reset_link.replace("localhost", "127.0.0.1")
+
         print("Reset link for testing:", reset_link)
+
 
 
         # Send email
@@ -451,5 +459,6 @@ def reset_password_missing_token():
 
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-  app.run(host="0.0.0.0", port=5000, debug=True)
+    #  app.run(debug=True)
+#   app.run(host="0.0.0.0", port=5000, debug=True)
+ app.run(debug=True, host="127.0.0.1", port=5000)
