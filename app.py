@@ -234,6 +234,7 @@ def Signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+     
         email = request.form["email"]
         password = request.form["password"]
 
@@ -260,6 +261,7 @@ def login():
 
 @app.route("/")
 def index():
+    
     return render_template("login.html")
 
 
@@ -270,18 +272,7 @@ def products():
     all_products =Products.query.all()
     return render_template("Products.html" ,products=all_products )
 
-# @app.route("/category/")
-# def all_categories():
-#     products = Products.query.all()
-#     message = None if products else "No products found."
-#     return render_template("Products.html", products=products, message=message)
 
-
-# @app.route("/category/<category_name>")
-# def category(category_name):
-#     products = Products.query.filter_by(category=category_name).all()
-#     message = None if products else "No products found in this category."
-#     return render_template("Products.html", products=products, message=message)
 
 
 
