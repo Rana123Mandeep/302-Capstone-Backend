@@ -30,6 +30,32 @@
                <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
 
             </div>
+
+             <div class="seller-info">
+                <div class="seller-details">
+                    <h4>👤 Seller Information</h4>
+                    <div class="seller-card clickable-seller-card" onclick="showSellerProfile()" title="Click to view seller profile and reviews">
+                        <div class="seller-avatar">
+                            <span class="seller-icon">👨‍💼</span>
+                        </div>
+                        <div class="seller-data">
+                            <h5 class="seller-name" id="sellerNameDisplay">Product Owner</h5>
+                            <div class="seller-status">
+                                <span class="online-indicator">●</span>
+                                <span class="status-text">Online Now</span>
+                            </div>
+                            <div class="seller-rating">
+                                <span class="rating-stars">⭐⭐⭐⭐⭐</span>
+                                <span class="rating-text">(4.8/5 - 24 reviews)</span>
+                            </div>
+                            <div class="view-profile-hint">
+                                <span class="hint-icon">👁️</span>
+                                <span class="hint-text">Click to view profile & reviews</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="item-info">
                 <h1>{{ item.name }}</h1>
                 <p class="item-price">${{ item.price }}</p>
