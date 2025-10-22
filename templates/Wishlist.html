@@ -47,8 +47,7 @@
               <a href="{{ url_for('message_seller', item_id=product.item_id) }}" class="btn-primary">Message Seller</a>
             </div>
             <div class="wishlist-actions">
-            <a href="{{ url_for('toggle_wishlist', product_id=product.id) }}" class="btn-remove" onclick="return confirm('Remove this item from your wishlist?')">Remove</a>
-
+              <a href="{{ url_for('remove_from_wishlist', item_id=product.item_id) }}" class="btn-remove" onclick="return confirm('Remove this item from your wishlist?')">Remove</a>
             </div>
           </div>
         </div>

@@ -25,21 +25,27 @@
         <div class="categories-dropdown" id="categoriesDropdown">
         <button class="btn active" id="categoriesBtn" onclick="toggleCategories()">Categories ▼</button>
         <div class="categories-menu" id="categoriesMenu">
-          <div class="filter-section">
-            <h4>Filter by Category</h4>
-            <select id="categoryFilter" onchange="filterCategory()">
-              <option value="">All Categories</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Books">Books</option>
-              <option value="Car">Car</option>
-            </select>
-          </div>
-    
+         <div class="filter-section">
+  <h4>Filter by Category</h4>
+  <select id="categoryFilter" onchange="filterCategory(this.value)">
+    <option value="{{ url_for('all_categories') }}">All Categories</option>
+    <option value="{{ url_for('category', category_name='electronics') }}">Electronics</option>
+    <option value="{{ url_for('category', category_name='clothing') }}">Clothing</option>
+    <option value="{{ url_for('category', category_name='fashion') }}">Fashion</option>
+    <option value="{{ url_for('category', category_name='books') }}">Books</option>
+    <option value="{{ url_for('category', category_name='car') }}">Car</option>
+  </select>
+</div>
+
+<script>
+  function filterCategory(url) {
+    window.location.href = url;
+  }
+</script>
+
     <div class="nav-right">
       <!-- Wishlist Icon -->
-      <a href="{{ url_for('wishlist') }}" class="wishlist-icon" title="View Wishlist">❤️</a>
+    <a href="{{ url_for('wishlist') }}" class="wishlist-icon" title="View Wishlist">❤️</a>
     
     <div class="nav-right">
       <!-- User Icon - Logout -->
@@ -178,7 +184,10 @@
     window.location.href = "/category/" + selected;  // specific category
   }
 }
-    
+    //new
+function filterCategory(url) {
+  window.location.href = url;
+}
     function performSearch() {
       // Clear previous timeout
       if (searchTimeout) {

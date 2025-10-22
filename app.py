@@ -10,6 +10,7 @@ load_dotenv()
 from flask import session
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask import jsonify, request
+from sqlalchemy import func
 
 
 app = Flask(__name__)  
@@ -267,7 +268,22 @@ def index():
 @app.route("/products")
 def products():
     all_products =Products.query.all()
-    return render_template("Products.html" ,products=all_products)
+    return render_template("Products.html" ,products=all_products )
+
+# @app.route("/category/")
+# def all_categories():
+#     products = Products.query.all()
+#     message = None if products else "No products found."
+#     return render_template("Products.html", products=products, message=message)
+
+
+# @app.route("/category/<category_name>")
+# def category(category_name):
+#     products = Products.query.filter_by(category=category_name).all()
+#     message = None if products else "No products found in this category."
+#     return render_template("Products.html", products=products, message=message)
+
+
 
 @app.route("/category/")
 def all_categories():
@@ -275,13 +291,11 @@ def all_categories():
     message = None if products else "No products found."
     return render_template("Products.html", products=products, message=message)
 
-
 @app.route("/category/<category_name>")
 def category(category_name):
-    products = Products.query.filter_by(category=category_name).all()
-    message = None if products else "No products found in this category."
+    products = Products.query.filter(func.lower(Products.category) == category_name.lower()).all()
+    message = None if products else f"No products found in '{category_name.title()}' category."
     return render_template("Products.html", products=products, message=message)
-
 
 @app. route("/message_seller/<int:item_id>")
 def message_seller(item_id):
