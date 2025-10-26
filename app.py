@@ -52,7 +52,7 @@ class User(db.Model):
     password = db.Column(db.String(512), nullable=False)
 #Table for upload file in products 
 class Products(db .Model):
-    __tabblename__="products"
+    __tablename__="products"
 
     id = db.Column(db.Integer, primary_key=True)
     Producttitle = db.Column(db.String(100), nullable=False)
@@ -107,6 +107,11 @@ def Wishlist():
     products = [item.product for item in wishlist_items]
    
     return render_template("wishlist.html")
+    user_id = session["user_id"]
+    wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
+    products = [item.product for item in wishlist_items]
+
+    return render_template("wishlist.html", products=products)
         
     
 
@@ -385,7 +390,7 @@ def forgot_password():
         # print("Reset link for testing:", reset_link)
         reset_link = url_for("reset_password", token=token, _external=True)
 
-# Fix local development host
+# local development host
         reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")  
         reset_link = reset_link.replace("localhost", "127.0.0.1")
 
@@ -460,5 +465,5 @@ def reset_password_missing_token():
 
 if __name__ == "__main__":
     #  app.run(debug=True)
-#   app.run(host="0.0.0.0", port=5000, debug=True)
+
  app.run(debug=True, host="127.0.0.1", port=5000)
