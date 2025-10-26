@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Listings - Marketplace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <h2>Your Listings</h2>
+      <a href="{{ url_for('products') }}" class="btn">Back to Marketplace</a>
+      <a href="{{ url_for('upload') }}" class="btn">Add New Listing</a>
+    </div>
+    
+    <div class="nav-right">
+      <!-- Wishlist Icon -->
+      <a href="{{ url_for('wishlist') }}" class="wishlist-icon" title="View Wishlist">❤️</a>
+      <!-- User Icon - Dropdown -->
+      <div class="user-dropdown" id="userDropdown">
+        <span class="user-icon" onclick="toggleUserMenu()" title="User Menu">👤</span>
+        <div class="user-menu" id="userMenu">
+          <div class="user-menu-header">
+            <span class="user-avatar">👤</span>
+            <div class="user-info">
+              <span class="user-name">User</span>
+              <span class="user-status">Online</span>
+            </div>
+          </div>
+          <div class="menu-divider"></div>
+          <div class="menu-actions">
+            <button onclick="logout()" class="menu-item logout-item">
+              <span class="menu-icon">🚪</span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="listings-container">
+    <!-- Header -->
+    <div class="listings-header">
+      <h1>📦 Your Product Listings</h1>
+      <p class="listings-count">Manage all your listed products</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterListings('all')">All Products</button>
+      <button class="filter-tab" onclick="filterListings('active')">Active Listings</button>
+      <button class="filter-tab" onclick="filterListings('deleted')">Deleted Products</button>
+    </div>
+
+    <!-- Listings Grid -->
+    <div class="listings-grid" id="listingsGrid">
+      {% if products and products|length > 0 %}
+        {% for product in products %}
+        <div class="listing-item" data-status="{{ product.status if product.status else 'active' }}" data-id="{{ loop.index0 }}">
+          <span class="listing-status {{ 'status-deleted' if product.status == 'deleted' else 'status-active' }}">
+            {{ product.status if product.status else 'Active' }}
+          </span>
+          
+          <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+          
+          <div class="listing-item-info">
+            <h3>{{ product.name }}</h3>
+            <p class="product-price">${{ product.price }}</p>
+            <p class="product-category">Category: {{ product.category }}</p>
+            <p class="product-condition">Condition: {{ product.condition if product.condition else 'Good' }}</p>
+          </div>
+
+          <div class="listing-actions">
+            {% if product.status == 'deleted' %}
+              <button class="btn-restore" onclick="restoreProduct({{ loop.index0 }})">
+                🔄 Restore Product
+              </button>
+            {% else %}
+              <a href="{{ url_for('message_seller', item_id=loop.index0) }}" class="btn-edit">
+                👁️ View Details
+              </a>
+              <button class="btn-delete" onclick="confirmDelete({{ loop.index0 }}, '{{ product.name }}')">
+                🗑️ Delete Listing
+              </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <!-- Empty State -->
+        <div class="empty-listings">
+          <div class="empty-icon">📦</div>
+          <h2>No Products Listed Yet</h2>
+          <p>Start selling by adding your first product!</p>
+          <a href="{{ url_for('upload') }}" class="btn-primary">Add Your First Product</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- No Results Message for Filters -->
+    <div class="empty-listings" id="noResults" style="display: none;">
+      <div class="empty-icon">🔍</div>
+      <h2>No Products Found</h2>
+      <p>No products match the selected filter.</p>
+      <button onclick="filterListings('all')" class="btn-primary">Show All Products</button>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-icon">⚠️</div>
+        <h2>Delete Product?</h2>
+        <p id="deleteProductName"></p>
+      </div>
+      <p style="text-align: center; color: #666;">This action will remove the product from active listings. You can restore it later from the "Deleted Products" tab.</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button class="modal-btn modal-btn-confirm" onclick="deleteProduct()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Popup -->
+  <div class="notification-popup" id="notificationPopup">
+    <div class="notification-content">
+      <span class="notification-icon">✓</span>
+      <span class="notification-text" id="notificationText">Action completed successfully!</span>
+      <span class="close-notification" onclick="closeNotification()">✕</span>
+    </div>
+  </div>
+
+  <script>
+    let productToDelete = null;
+    let currentFilter = 'all';
+
+    // Toggle user menu
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('userMenu');
+      const userIcon = document.querySelector('.user-icon');
+      
+      userMenu.classList.toggle('active');
+      
+      if (userMenu.classList.contains('active')) {
+        userIcon.classList.add('active');
+      } else {
+        userIcon.classList.remove('active');
+      }
+    }
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const userDropdown = document.getElementById('userDropdown');
+      const userMenu = document.getElementById('userMenu');
+      
+      if (!userDropdown.contains(event.target) && userMenu.classList.contains('active')) {
+        userMenu.classList.remove('active');
+        document.querySelector('.user-icon').classList.remove('active');
+      }
+    });
+
+    // Logout function
+    function logout() {
+      window.location.href = "{{ url_for('logout') }}";
+    }
+
+    // Filter listings
+    function filterListings(status) {
+      currentFilter = status;
+      const listingItems = document.querySelectorAll('.listing-item');
+      const listingsGrid = document.getElementById('listingsGrid');
+      const noResults = document.getElementById('noResults');
+      const filterTabs = document.querySelectorAll('.filter-tab');
+      
+      // Update active tab
+      filterTabs.forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      let visibleCount = 0;
+      
+      listingItems.forEach(item => {
+        const itemStatus = item.dataset.status;
+        
+        if (status === 'all' || 
+            (status === 'active' && itemStatus !== 'deleted') ||
+            (status === 'deleted' && itemStatus === 'deleted')) {
+          item.style.display = 'block';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Show/hide no results message
+      if (visibleCount === 0) {
+        listingsGrid.style.display = 'none';
+        noResults.style.display = 'block';
+      } else {
+        listingsGrid.style.display = 'grid';
+        noResults.style.display = 'none';
+      }
+    }
+
+    // Confirm delete
+    function confirmDelete(productId, productName) {
+      productToDelete = productId;
+      document.getElementById('deleteProductName').textContent = `"${productName}"`;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    // Close delete modal
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      productToDelete = null;
+    }
+
+    // Delete product
+    function deleteProduct() {
+      if (productToDelete !== null) {
+        // In a real application, this would send a request to the server
+        // For now, we'll just update the UI
+        const listingItem = document.querySelector(`[data-id="${productToDelete}"]`);
+        if (listingItem) {
+          listingItem.dataset.status = 'deleted';
+          
+          // Update status badge
+          const statusBadge = listingItem.querySelector('.listing-status');
+          statusBadge.textContent = 'Deleted';
+          statusBadge.classList.remove('status-active');
+          statusBadge.classList.add('status-deleted');
+          
+          // Update actions
+          const actionsDiv = listingItem.querySelector('.listing-actions');
+          actionsDiv.innerHTML = `
+            <button class="btn-restore" onclick="restoreProduct(${productToDelete})">
+              🔄 Restore Product
+            </button>
+          `;
+          
+          showNotification('Product deleted successfully! You can restore it anytime.', 'success');
+          
+          // Re-apply current filter
+          if (currentFilter === 'active') {
+            listingItem.style.display = 'none';
+          }
+        }
+        
+        closeDeleteModal();
+      }
+    }
+
+    // Restore product
+    function restoreProduct(productId) {
+      const listingItem = document.querySelector(`[data-id="${productId}"]`);
+      if (listingItem) {
+        listingItem.dataset.status = 'active';
+        
+        // Update status badge
+        const statusBadge = listingItem.querySelector('.listing-status');
+        statusBadge.textContent = 'Active';
+        statusBadge.classList.remove('status-deleted');
+        statusBadge.classList.add('status-active');
+        
+        // Get product name for the view link
+        const productName = listingItem.querySelector('h3').textContent;
+        
+        // Update actions
+        const actionsDiv = listingItem.querySelector('.listing-actions');
+        actionsDiv.innerHTML = `
+          <a href="#" class="btn-edit">
+            👁️ View Details
+          </a>
+          <button class="btn-delete" onclick="confirmDelete(${productId}, '${productName}')">
+            🗑️ Delete Listing
+          </button>
+        `;
+        
+        showNotification('Product restored successfully!', 'success');
+        
+        // Re-apply current filter
+        if (currentFilter === 'deleted') {
+          listingItem.style.display = 'none';
+        }
+      }
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+      const popup = document.getElementById('notificationPopup');
+      const text = document.getElementById('notificationText');
+      const content = popup.querySelector('.notification-content');
+      
+      text.textContent = message;
+      
+      // Update color based on type
+      if (type === 'success') {
+        content.style.background = '#4CAF50';
+      } else if (type === 'error') {
+        content.style.background = '#f44336';
+      }
+      
+      popup.style.display = 'flex';
+      
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        closeNotification();
+      }, 3000);
+    }
+
+    // Close notification
+    function closeNotification() {
+      document.getElementById('notificationPopup').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('deleteModal');
+      if (event.target === modal) {
+        closeDeleteModal();
+      }
+    }
+  </script>
+</body>
+</html>
