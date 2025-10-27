@@ -44,6 +44,24 @@ The Thrift store (Marketplace) – E-Commerce Web Application
 -Automatically updates on both Product Listing and User’s My Listings pages
 
 
+💖**Wishlist**
+
+-Add or remove items instantly with a heart icon ❤️
+
+-All saved products displayed in My Wishlist page
+
+-Persistent wishlist linked to the logged-in user
+
+-Option to message seller or remove from wishlist
+
+🔐 **User Authentication**
+
+-Secure Signup and Login with password hashing
+
+-Forgot password and reset email functionality
+
+
+
 ---
 
 ## 📁 File Structure
