@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Support - Marketplace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <h2>Customer Support</h2>
+      <a href="{{ url_for('products') }}" class="btn">Back to Marketplace</a>
+    </div>
+    
+    <div class="nav-right">
+      <!-- Wishlist Icon -->
+      <a href="{{ url_for('wishlist') }}" class="wishlist-icon" title="View Wishlist">❤️</a>
+      <!-- User Icon - Dropdown -->
+      <div class="user-dropdown" id="userDropdown">
+        <span class="user-icon" onclick="toggleUserMenu()" title="User Menu">👤</span>
+        <div class="user-menu" id="userMenu">
+          <div class="user-menu-header">
+            <span class="user-avatar">👤</span>
+            <div class="user-info">
+              <span class="user-name">User</span>
+              <span class="user-status">Online</span>
+            </div>
+          </div>
+          <div class="menu-divider"></div>
+          <div class="menu-actions">
+            <button onclick="logout()" class="menu-item logout-item">
+              <span class="menu-icon">🚪</span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="support-container">
+    <!-- Header -->
+    <div class="support-header">
+      <h1>🆘 Customer Support Center</h1>
+      <p>Find answers to your questions and get help with our marketplace</p>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="support-nav">
+      <button class="support-nav-btn active" onclick="showSection('guidance')">
+        <span class="nav-icon">📘</span>
+        User Guidance
+      </button>
+      <button class="support-nav-btn" onclick="showSection('terms')">
+        <span class="nav-icon">⚖️</span>
+        Terms & Conditions
+      </button>
+      <button class="support-nav-btn" onclick="showSection('help')">
+        <span class="nav-icon">🛠️</span>
+        Help Information
+      </button>
+    </div>
+
+    <!-- User Guidance Section -->
+    <div id="guidance" class="support-section active">
+      <div class="section-header">
+        <h2>📘 User Guidance</h2>
+        <p>Learn how to use all the features of our marketplace</p>
+      </div>
+
+      <div class="guide-grid">
+        <!-- Sign Up Guide -->
+        <div class="guide-card">
+          <div class="guide-icon">👤</div>
+          <h3>How to Sign Up</h3>
+          <ol class="guide-steps">
+            <li>Click on the <strong>"Sign Up"</strong> link on the login page</li>
+            <li>Fill in your personal information:
+              <ul>
+                <li>First Name</li>
+                <li>Last Name</li>
+                <li>Email Address</li>
+                <li>Password (minimum 8 characters)</li>
+              </ul>
+            </li>
+            <li>Confirm your password by entering it again</li>
+            <li>Click <strong>"Sign Up"</strong> to create your account</li>
+            <li>You'll be redirected to the login page</li>
+            <li>Log in with your new credentials to start using the marketplace</li>
+          </ol>
+          <div class="guide-tip">
+            <strong>💡 Tip:</strong> Use a strong password with a mix of letters, numbers, and symbols for better security.
+          </div>
+        </div>
+
+        <!-- List Products Guide -->
+        <div class="guide-card">
+          <div class="guide-icon">📦</div>
+          <h3>How to List Products</h3>
+          <ol class="guide-steps">
+            <li>Log in to your account</li>
+            <li>Click the <strong>"Sell"</strong> button in the navigation bar</li>
+            <li>Fill in your product details:
+              <ul>
+                <li><strong>Product Title:</strong> Give your item a clear, descriptive name</li>
+                <li><strong>Price:</strong> Set a fair price in dollars</li>
+                <li><strong>Category:</strong> Select the appropriate category</li>
+                <li><strong>Condition:</strong> Choose the item's condition (New, Like New, Good, Fair, Poor)</li>
+                <li><strong>Description:</strong> Describe features, specifications, and any important details</li>
+              </ul>
+            </li>
+            <li>Upload a clear photo of your product</li>
+            <li>Click <strong>"Upload Product"</strong> to publish your listing</li>
+            <li>Your product will appear in the marketplace immediately</li>
+          </ol>
+          <div class="guide-tip">
+            <strong>💡 Tip:</strong> High-quality photos and detailed descriptions help sell items faster!
+          </div>
+        </div>
+
+        <!-- Search Guide -->
+        <div class="guide-card">
+          <div class="guide-icon">🔍</div>
+          <h3>How to Search for Products</h3>
+          <ol class="guide-steps">
+            <li>Use the <strong>search bar</strong> at the top of the marketplace</li>
+            <li>Type keywords related to what you're looking for</li>
+            <li>Use the <strong>"Categories"</strong> dropdown to filter by:
+              <ul>
+                <li>Product Category (Electronics, Clothing, etc.)</li>
+                <li>Condition (New, Excellent, Good, Used, Fair)</li>
+                <li>Price Range (Min and Max)</li>
+              </ul>
+            </li>
+            <li>Click <strong>"Apply Filters"</strong> to see filtered results</li>
+            <li>Click on any product to view full details</li>
+            <li>Use <strong>"Clear Filters"</strong> to reset and see all products</li>
+          </ol>
+          <div class="guide-tip">
+            <strong>💡 Tip:</strong> Combine search terms with filters for more precise results!
+          </div>
+        </div>
+
+        <!-- Chat Guide -->
+        <div class="guide-card">
+          <div class="guide-icon">💬</div>
+          <h3>How to Chat with Sellers</h3>
+          <ol class="guide-steps">
+            <li>Click on a product you're interested in</li>
+            <li>You'll see the product details page</li>
+            <li>Type your message in the text box:
+              <ul>
+                <li>Ask questions about the product</li>
+                <li>Request additional photos</li>
+                <li>Negotiate price or pickup details</li>
+              </ul>
+            </li>
+            <li>Click the <strong>send button (➤)</strong> to send your message</li>
+            <li>The seller will receive your message</li>
+            <li>You can view the conversation history in the chat interface</li>
+            <li>Continue chatting until you're ready to complete the purchase</li>
+          </ol>
+          <div class="guide-tip">
+            <strong>💡 Tip:</strong> Be polite and clear in your messages for better communication!
+          </div>
+        </div>
+
+        <!-- Wishlist Guide -->
+        <div class="guide-card">
+          <div class="guide-icon">❤️</div>
+          <h3>How to Use Wishlist</h3>
+          <ol class="guide-steps">
+            <li>Browse products in the marketplace</li>
+            <li>Click on a product to view details</li>
+            <li>Click the <strong>star icon (⭐)</strong> to save to wishlist</li>
+            <li>The star will turn gold when saved</li>
+            <li>Access your wishlist by clicking the <strong>❤️ icon</strong> in the navbar</li>
+            <li>View all your saved items in one place</li>
+            <li>Click <strong>"Message Seller"</strong> to contact about any item</li>
+            <li>Remove items by clicking <strong>"Remove"</strong></li>
+          </ol>
+          <div class="guide-tip">
+            <strong>💡 Tip:</strong> Use wishlist to keep track of items you want to buy later!
+          </div>
+        </div>
+
+        <!-- Complete Purchase Guide -->
+        <div class="guide-card">
+          <div class="guide-icon">✅</div>
+          <h3>How to Complete Purchases</h3>
+          <ol class="guide-steps">
+            <li>Contact the seller through chat</li>
+            <li>Discuss and agree on:
+              <ul>
+                <li>Final price</li>
+                <li>Pickup location and time</li>
+                <li>Payment method</li>
+                <li>Product condition verification</li>
+              </ul>
+            </li>
+            <li>Use the <strong>booking/reservation feature</strong> if available</li>
+            <li>Enable <strong>email reminders</strong> for pickup notifications</li>
+            <li>Meet at the agreed location</li>
+            <li>Inspect the item carefully before payment</li>
+            <li>Complete the transaction in a safe, public place</li>
+            <li>Leave a review for the seller after purchase</li>
+          </ol>
+          <div class="guide-tip">
+            <strong>💡 Tip:</strong> Always meet in public places and bring a friend for safety!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms & Conditions Section -->
+    <div id="terms" class="support-section">
+      <div class="section-header">
+        <h2>⚖️ Terms & Conditions</h2>
+        <p>Important policies and rules for using our marketplace</p>
+      </div>
+
+      <div class="terms-content">
+        <div class="terms-card">
+          <h3>📜 Marketplace Policies</h3>
+          <div class="terms-section">
+            <h4>1. Account Registration</h4>
+            <ul>
+              <li>Users must provide accurate and truthful information during registration</li>
+              <li>You are responsible for maintaining the security of your account</li>
+              <li>One account per user; multiple accounts are not permitted</li>
+              <li>Users must be at least 18 years old or have parental consent</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h4>2. Listing Requirements</h4>
+            <ul>
+              <li>Product descriptions must be accurate and honest</li>
+              <li>Photos must show the actual item being sold</li>
+              <li>Prices must be clearly stated and fair</li>
+              <li>Sellers are responsible for the accuracy of their listings</li>
+              <li>Misleading or fraudulent listings will be removed</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h4>3. Transaction Guidelines</h4>
+            <ul>
+              <li>All transactions are between buyers and sellers directly</li>
+              <li>The marketplace is not responsible for disputes between parties</li>
+              <li>Payment terms must be agreed upon by both parties</li>
+              <li>Sellers must honor their listed prices</li>
+              <li>Buyers must pay the agreed amount</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h4>4. Communication Standards</h4>
+            <ul>
+              <li>All communication must be respectful and professional</li>
+              <li>Harassment, threats, or abusive language is prohibited</li>
+              <li>Spam or unsolicited advertising is not allowed</li>
+              <li>Personal contact information should be shared cautiously</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="terms-card">
+          <h3>👤 User Responsibilities</h3>
+          <div class="terms-section">
+            <h4>Sellers Must:</h4>
+            <ul>
+              <li>✓ Provide accurate product descriptions and photos</li>
+              <li>✓ Respond to buyer inquiries promptly</li>
+              <li>✓ Honor commitments made to buyers</li>
+              <li>✓ Be available for scheduled pickups</li>
+              <li>✓ Notify buyers of any issues or changes</li>
+              <li>✓ Remove listings once items are sold</li>
+              <li>✓ Maintain honest and fair pricing</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h4>Buyers Must:</h4>
+            <ul>
+              <li>✓ Communicate clearly about their needs</li>
+              <li>✓ Show up for scheduled pickups on time</li>
+              <li>✓ Pay the agreed-upon price</li>
+              <li>✓ Inspect items before completing purchase</li>
+              <li>✓ Treat sellers with respect</li>
+              <li>✓ Cancel plans promptly if unable to purchase</li>
+              <li>✓ Provide honest reviews after transactions</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="terms-card warning-card">
+          <h3>🚫 Prohibited Items</h3>
+          <p><strong>The following items are strictly prohibited on our marketplace:</strong></p>
+          
+          <div class="prohibited-grid">
+            <div class="prohibited-item">
+              <span class="prohibited-icon">🔫</span>
+              <strong>Weapons</strong>
+              <p>Firearms, ammunition, explosives, knives (except kitchen utensils)</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">💊</span>
+              <strong>Drugs & Substances</strong>
+              <p>Illegal drugs, prescription medications, drug paraphernalia</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">🏴‍☠️</span>
+              <strong>Stolen Items</strong>
+              <p>Items obtained illegally or without proper ownership</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">🔞</span>
+              <strong>Adult Content</strong>
+              <p>Pornographic materials, adult services, or explicit content</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">🐾</span>
+              <strong>Live Animals</strong>
+              <p>Pets, livestock, or any living creatures</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">💳</span>
+              <strong>Financial Products</strong>
+              <p>Credit cards, gift cards (used), counterfeit currency</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">🏥</span>
+              <strong>Medical Items</strong>
+              <p>Prescription drugs, medical devices requiring authorization</p>
+            </div>
+            
+            <div class="prohibited-item">
+              <span class="prohibited-icon">⚠️</span>
+              <strong>Hazardous Materials</strong>
+              <p>Chemicals, flammable liquids, toxic substances</p>
+            </div>
+          </div>
+
+          <div class="warning-notice">
+            <strong>⚠️ Warning:</strong> Listing prohibited items may result in immediate account suspension and legal action.
+          </div>
+        </div>
+
+        <div class="terms-card">
+          <h3>🛡️ Safety Rules</h3>
+          <div class="safety-rules">
+            <div class="safety-rule">
+              <span class="rule-number">1</span>
+              <div class="rule-content">
+                <h4>Meet in Public Places</h4>
+                <p>Always meet in well-lit, public locations such as coffee shops, malls, or police station parking lots. Never invite strangers to your home.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">2</span>
+              <div class="rule-content">
+                <h4>Bring a Friend</h4>
+                <p>When possible, bring someone with you to transactions. There's safety in numbers, especially for high-value items.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">3</span>
+              <div class="rule-content">
+                <h4>Inspect Before Payment</h4>
+                <p>Thoroughly examine items before completing payment. Test electronics, check for damage, and verify authenticity.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">4</span>
+              <div class="rule-content">
+                <h4>Use Safe Payment Methods</h4>
+                <p>Use cash or verified payment apps. Avoid wire transfers or cryptocurrency for local transactions. Never send money before seeing the item.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">5</span>
+              <div class="rule-content">
+                <h4>Trust Your Instincts</h4>
+                <p>If something feels wrong, walk away. Don't feel pressured to complete a transaction if you're uncomfortable.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">6</span>
+              <div class="rule-content">
+                <h4>Protect Personal Information</h4>
+                <p>Don't share sensitive information like social security numbers, banking details, or passwords. Be cautious with your address.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">7</span>
+              <div class="rule-content">
+                <h4>Report Suspicious Activity</h4>
+                <p>If you encounter fraud, harassment, or suspicious behavior, report it immediately through our support system.</p>
+              </div>
+            </div>
+
+            <div class="safety-rule">
+              <span class="rule-number">8</span>
+              <div class="rule-content">
+                <h4>Keep Records</h4>
+                <p>Save all messages, receipts, and transaction details. This documentation can be helpful if disputes arise.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Information Section -->
+    <div id="help" class="support-section">
+      <div class="section-header">
+        <h2>🛠️ Help Information</h2>
+        <p>Tips and tricks for getting the most out of our marketplace</p>
+      </div>
+
+      <div class="help-grid">
+        <!-- Safe Transactions -->
+        <div class="help-card">
+          <div class="help-icon">🔒</div>
+          <h3>Tips for Safe Transactions</h3>
+          <div class="help-content">
+            <h4>Before Meeting:</h4>
+            <ul>
+              <li>✓ Research the item's market value</li>
+              <li>✓ Read seller reviews and ratings</li>
+              <li>✓ Ask for additional photos if needed</li>
+              <li>✓ Confirm item availability before traveling</li>
+              <li>✓ Share meeting details with a friend</li>
+            </ul>
+
+            <h4>During Transaction:</h4>
+            <ul>
+              <li>✓ Meet during daylight hours when possible</li>
+              <li>✓ Choose busy, well-monitored locations</li>
+              <li>✓ Count cash carefully in person</li>
+              <li>✓ Verify item authenticity and functionality</li>
+              <li>✓ Get a receipt for higher-value items</li>
+            </ul>
+
+            <h4>After Purchase:</h4>
+            <ul>
+              <li>✓ Test the item thoroughly</li>
+              <li>✓ Keep all documentation</li>
+              <li>✓ Leave honest feedback</li>
+              <li>✓ Report any issues promptly</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Managing Listings -->
+        <div class="help-card">
+          <div class="help-icon">📋</div>
+          <h3>Managing Your Listings</h3>
+          <div class="help-content">
+            <h4>Access Your Listings:</h4>
+            <ul>
+              <li>Click <strong>"Your Listings"</strong> in the navigation bar</li>
+              <li>Or access from the user menu dropdown</li>
+            </ul>
+
+            <h4>Filter Your Products:</h4>
+            <ul>
+              <li><strong>All Products:</strong> View everything you've listed</li>
+              <li><strong>Active Listings:</strong> See only currently available items</li>
+              <li><strong>Deleted Products:</strong> View items you've removed</li>
+            </ul>
+
+            <h4>Manage Individual Listings:</h4>
+            <ul>
+              <li>👁️ <strong>View Details:</strong> See full product information</li>
+              <li>🗑️ <strong>Delete Listing:</strong> Remove from active marketplace (can be restored)</li>
+              <li>🔄 <strong>Restore Product:</strong> Bring deleted items back to active status</li>
+            </ul>
+
+            <h4>Best Practices:</h4>
+            <ul>
+              <li>✓ Update listings if details change</li>
+              <li>✓ Remove sold items promptly</li>
+              <li>✓ Use clear, well-lit photos</li>
+              <li>✓ Respond to inquiries within 24 hours</li>
+              <li>✓ Price competitively based on condition</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Wishlist Features -->
+        <div class="help-card">
+          <div class="help-icon">⭐</div>
+          <h3>Wishlist Features</h3>
+          <div class="help-content">
+            <h4>Adding Items:</h4>
+            <ul>
+              <li>Click the ⭐ star icon on any product page</li>
+              <li>Star turns gold when item is saved</li>
+              <li>Items are automatically saved to your account</li>
+            </ul>
+
+            <h4>Managing Your Wishlist:</h4>
+            <ul>
+              <li>Access via ❤️ icon in the navbar</li>
+              <li>View all saved items in one place</li>
+              <li>Click items to view full details</li>
+              <li>Message sellers directly from wishlist</li>
+              <li>Remove items you're no longer interested in</li>
+            </ul>
+
+            <h4>Wishlist Benefits:</h4>
+            <ul>
+              <li>✓ Save items you want to purchase later</li>
+              <li>✓ Compare multiple products easily</li>
+              <li>✓ Quick access to items you're tracking</li>
+              <li>✓ Never lose track of favorites</li>
+              <li>✓ Perfect for budget planning</li>
+            </ul>
+
+            <h4>Pro Tips:</h4>
+            <ul>
+              <li>💡 Check wishlist regularly for availability</li>
+              <li>💡 Act fast on popular items</li>
+              <li>💡 Use wishlist to track price changes</li>
+              <li>💡 Message sellers to negotiate bundles</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Email Reminders -->
+        <div class="help-card">
+          <div class="help-icon">📧</div>
+          <h3>Email Reminders & Notifications</h3>
+          <div class="help-content">
+            <h4>Booking Alerts:</h4>
+            <ul>
+              <li>Enable alerts for items you're interested in</li>
+              <li>Get notified when someone books the item</li>
+              <li>Receive updates on availability changes</li>
+              <li>Never miss out on items you want</li>
+            </ul>
+
+            <h4>Setting Up Reminders:</h4>
+            <ol>
+              <li>Visit a product you're interested in</li>
+              <li>Click the notification/reminder icon</li>
+              <li>Enter your email address</li>
+              <li>Choose notification preferences</li>
+              <li>Click <strong>"Enable Alerts"</strong></li>
+            </ol>
+
+            <h4>Reservation Confirmations:</h4>
+            <ul>
+              <li>Receive confirmation when you book an item</li>
+              <li>Get pickup details via email</li>
+              <li>Reservation ID for your records</li>
+              <li>Reminders before pickup time</li>
+            </ul>
+
+            <h4>Email Types:</h4>
+            <ul>
+              <li>📧 <strong>Booking Confirmations:</strong> When you reserve an item</li>
+              <li>🔔 <strong>Booking Alerts:</strong> When watched items are booked</li>
+              <li>⏰ <strong>Pickup Reminders:</strong> Before scheduled meetings</li>
+              <li>✉️ <strong>Message Notifications:</strong> When sellers respond</li>
+            </ul>
+
+            <h4>Managing Notifications:</h4>
+            <ul>
+              <li>✓ Check your email regularly</li>
+              <li>✓ Add marketplace to safe senders</li>
+              <li>✓ Update email preferences anytime</li>
+              <li>✓ Disable alerts for specific items</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="help-card">
+          <div class="help-icon">🔧</div>
+          <h3>Troubleshooting Common Issues</h3>
+          <div class="help-content">
+            <h4>Can't Log In:</h4>
+            <ul>
+              <li>✓ Check your email and password spelling</li>
+              <li>✓ Use "Forgot Password" to reset</li>
+              <li>✓ Clear browser cache and cookies</li>
+              <li>✓ Try a different browser</li>
+            </ul>
+
+            <h4>Product Upload Issues:</h4>
+            <ul>
+              <li>✓ Ensure image is in supported format (JPG, PNG)</li>
+              <li>✓ Check image file size (under 5MB)</li>
+              <li>✓ Fill in all required fields</li>
+              <li>✓ Use valid price format</li>
+            </ul>
+
+            <h4>Search Not Working:</h4>
+            <ul>
+              <li>✓ Try different search terms</li>
+              <li>✓ Clear all filters and try again</li>
+              <li>✓ Check spelling of search words</li>
+              <li>✓ Refresh the page</li>
+            </ul>
+
+            <h4>Chat Messages Not Sending:</h4>
+            <ul>
+              <li>✓ Check your internet connection</li>
+              <li>✓ Ensure message isn't empty</li>
+              <li>✓ Refresh the page and try again</li>
+              <li>✓ Try logging out and back in</li>
+            </ul>
+
+            <h4>Wishlist Not Saving:</h4>
+            <ul>
+              <li>✓ Make sure you're logged in</li>
+              <li>✓ Check browser cookie settings</li>
+              <li>✓ Try a different browser</li>
+              <li>✓ Clear cache and retry</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="help-card contact-card">
+          <div class="help-icon">💬</div>
+          <h3>Still Need Help?</h3>
+          <div class="help-content">
+            <p class="contact-intro">If you can't find the answer to your question, our support team is here to help!</p>
+            
+            <div class="contact-methods">
+              <div class="contact-method">
+                <span class="contact-icon">📧</span>
+                <strong>Email Support:</strong>
+                <p>msthriftstore@gmail.com</p>
+                <small>Response within 24 hours</small>
+              </div>
+
+              <div class="contact-method">
+                <span class="contact-icon">📱</span>
+                <strong>Phone Support:</strong>
+                <p>1-800-MARKET-HELP</p>
+                <small>Mon-Fri: 9AM-6PM EST</small>
+              </div>
+
+              <div class="contact-method">
+                <span class="contact-icon">💬</span>
+                <strong>Live Chat:</strong>
+                <p>Available on website</p>
+                <small>Mon-Sat: 10AM-8PM EST</small>
+              </div>
+            </div>
+
+            <div class="faq-link">
+              <p><strong>Before contacting support, check our FAQ section for quick answers!</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle user menu
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('userMenu');
+      const userIcon = document.querySelector('.user-icon');
+      
+      userMenu.classList.toggle('active');
+      
+      if (userMenu.classList.contains('active')) {
+        userIcon.classList.add('active');
+      } else {
+        userIcon.classList.remove('active');
+      }
+    }
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const userDropdown = document.getElementById('userDropdown');
+      const userMenu = document.getElementById('userMenu');
+      
+      if (!userDropdown.contains(event.target) && userMenu.classList.contains('active')) {
+        userMenu.classList.remove('active');
+        document.querySelector('.user-icon').classList.remove('active');
+      }
+    });
+
+    // Logout function
+    function logout() {
+      window.location.href = "{{ url_for('logout') }}";
+    }
+
+    // Show section function
+    function showSection(sectionId) {
+      // Hide all sections
+      const sections = document.querySelectorAll('.support-section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Remove active class from all nav buttons
+      const navBtns = document.querySelectorAll('.support-nav-btn');
+      navBtns.forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Show selected section
+      const selectedSection = document.getElementById(sectionId);
+      if (selectedSection) {
+        selectedSection.classList.add('active');
+      }
+
+      // Add active class to clicked button
+      event.target.closest('.support-nav-btn').classList.add('active');
+
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

@@ -74,43 +74,121 @@ class Wishlist(db.Model):
     product = db.relationship("Products", backref="wishlisted_by", lazy=True)
 
 #Route for add product in wishlist
+# @app.route("/toggle_wishlist/<int:product_id>")
+# def toggle_wishlist(product_id):
+#      user_id = session.get("user_id")
+#      if "user_id" not in session:
+#          flash("Please login first to view your Wishlist.","Warning")
+#          return redirect(url_for("login"))
+#      existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
+
+#      if existing:
+#             db.session.delete(existing)
+#             db.session.commit()
+#             flash("Item removed from wishlist.", "info")
+#      else:
+#             new_item = Wishlist(user_id=user_id, product_id=product_id)
+#             db.session.add(new_item)
+#             db.session.commit()
+#             flash("Item added to wishlist!", "success")
+
+#             # Return to the same page you came from
+#             return redirect(request.referrer or url_for("wishlist"))
+
+# #wishlist 
+# @app.route("/wishlist")
+# def Wishlist():
+#     user_id = session["user_id"]
+#     if "user_id" not in session:
+#         flash("Please login first to view your Wishlist.","Warning")
+#         return redirect(url_for("login"))
+
+#     wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
+#     products = [item.product for item in wishlist_items]
+   
+#     return render_template("wishlist.html")
+#     user_id = session["user_id"]
+#     wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
+#     products = [item.product for item in wishlist_items]
+
+#     return render_template("wishlist.html", products=products)
+# Route for toggle wishlist
 @app.route("/toggle_wishlist/<int:product_id>")
 def toggle_wishlist(product_id):
-     user_id = session.get("user_id")
-     if "user_id" not in session:
-         flash("Please login first to view your Wishlist.","Warning")
-         return redirect(url_for("login"))
-     existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
-
-     if existing:
-            db.session.delete(existing)
-            db.session.commit()
-            flash("Item removed from wishlist.", "info")
-     else:
-            new_item = Wishlist(user_id=user_id, product_id=product_id)
-            db.session.add(new_item)
-            db.session.commit()
-            flash("Item added to wishlist!", "success")
-
-            # Return to the same page you came from
-            return redirect(request.referrer or url_for("wishlist"))
-
-#wishlist 
-@app.route("/wishlist")
-def Wishlist():
-    user_id = session["user_id"]
     if "user_id" not in session:
-        flash("Please login first to view your Wishlist.","Warning")
+        if request.args.get('ajax') == '1':
+            return jsonify({"success": False, "message": "Please login first to add items to wishlist."})
+        flash("Please login first to view your Wishlist.", "warning")
         return redirect(url_for("login"))
+    
+    user_id = session["user_id"]
+    existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
+    
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        message = "Item removed from wishlist."
+        is_in_wishlist = False
+    else:
+        new_item = Wishlist(user_id=user_id, product_id=product_id)
+        db.session.add(new_item)
+        db.session.commit()
+        message = "Item added to wishlist!"
+        is_in_wishlist = True
+    
+    # Handle AJAX requests
+    if request.args.get('ajax') == '1':
+        return jsonify({
+            "success": True, 
+            "is_in_wishlist": is_in_wishlist, 
+            "message": message
+        })
+    
+    # Handle regular requests
+    flash(message, "success" if is_in_wishlist else "info")
+    return redirect(request.referrer or url_for("wishlist"))
 
-    wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
-    products = [item.product for item in wishlist_items]
-   
-    return render_template("wishlist.html")
+# Route for removing from wishlist
+@app.route("/remove_from_wishlist/<int:item_id>")
+def remove_from_wishlist(item_id):
+    if "user_id" not in session:
+        flash("Please login first to manage your wishlist.", "warning")
+        return redirect(url_for("login"))
+    
+    user_id = session["user_id"]
+    wishlist_item = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first()
+    
+    if wishlist_item:
+        db.session.delete(wishlist_item)
+        db.session.commit()
+        flash("Item removed from wishlist.", "info")
+    else:
+        flash("Item not found in your wishlist.", "warning")
+    
+    return redirect(url_for("wishlist"))
+
+# Wishlist display route
+@app.route("/wishlist")
+def wishlist():
+    if "user_id" not in session:
+        flash("Please login first to view your Wishlist.", "warning")
+        return redirect(url_for("login"))
+    
     user_id = session["user_id"]
     wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
-    products = [item.product for item in wishlist_items]
-
+    products = []
+    
+    for item in wishlist_items:
+        product = item.product
+        products.append({
+            "item_id": product.id,
+            "name": product.Producttitle,
+            "price": product.price,
+            "category": product.category,
+            "condition": product.condition,
+            "image": f"uploads/{product.image_filename}"
+        })
+    
     return render_template("wishlist.html", products=products)
         
     
@@ -277,9 +355,9 @@ def products():
     all_products =Products.query.all()
     return render_template("Products.html" ,products=all_products )
 
-
-
-
+@app.route("/YourListing")
+def YourListing():
+    return render_template("YourListings.html", products=products)
 
 @app.route("/category/")
 def all_categories():
