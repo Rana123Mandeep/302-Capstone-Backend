@@ -330,6 +330,8 @@ def login():
 
    
         if check_password_hash(user.password, password):
+            session["user_id"] = user.id
+            session["user_name"] = user.first_name
             flash(f"Welcome back, {user.first_name}! Login successful.",  "success")
             return redirect(url_for("products")) 
         else:
@@ -339,11 +341,39 @@ def login():
     
     return render_template("login.html")
 
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    session.pop("user_name", None)
+    flash("You have been logged out successfully.", "info")
+  
+    return redirect(url_for("login"))
 
 
-
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
+    if request.method == "POST":
+     
+        email = request.form["email"]
+        password = request.form["password"]
+
+       
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            flash("No account found with that email. Please sign up first.", "danger")
+            return redirect(url_for("login"))
+
+   
+        if check_password_hash(user.password, password):
+            session["user_id"] = user.id
+            session["user_name"] = user.first_name
+            flash(f"Welcome back, {user.first_name}! Login successful.",  "success")
+            return redirect(url_for("products")) 
+        else:
+            flash("Incorrect password. Please try again.", "danger")
+            return redirect(url_for("login"))
+
     
     return render_template("login.html")
 
@@ -357,7 +387,7 @@ def products():
 
 @app.route("/YourListing")
 def YourListing():
-    return render_template("YourListings.html", products=products)
+    return render_template("YourListings.html")
 
 @app.route("/category/")
 def all_categories():
@@ -370,6 +400,10 @@ def category(category_name):
     products = Products.query.filter(func.lower(Products.category) == category_name.lower()).all()
     message = None if products else f"No products found in '{category_name.title()}' category."
     return render_template("Products.html", products=products, message=message)
+
+@app.route("/customer-support")
+def customer_support():
+    return render_template("CustomerSupport.html")
 
 @app. route("/message_seller/<int:item_id>")
 def message_seller(item_id):
@@ -438,10 +472,7 @@ def search():
     return render_template("Products.html", products=results, message= message)
      
 
-@app.route("/logout")
-def logout():
-  
-    return redirect(url_for("login"))
+
 
 
 
