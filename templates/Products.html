@@ -52,13 +52,12 @@
       <a href="{{ url_for('customer_support') }}" class="support-icon" title="Customer Support">🆘</a>
     
     <div class="nav-right">
-      <!-- User Icon - Logout -->
       <div class="user-icon-container">
-
         <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
         <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
       </div>
     </div>
+  </nav>
   </nav>
   {% if message %}
   <p style="text-align:center; color: red; font-weight: bold; margin-top: 20px;"><!--this line depicts the messge if search item not found -->
