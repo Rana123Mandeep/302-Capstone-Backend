@@ -569,14 +569,6 @@ def item_message(item_id):
         item_id=item_id,
         is_in_wishlist=is_in_wishlist
     )
-# @app.route("/chat_with_seller/<int:item_id>")
-# def chat_with_seller(item_id):
-#    item = Products.query.get(item_id)
-#    if not item:
-#         return f" Item with ID {item_id} not found", 404
-    
-#     # For now, render the same ItemMessage page
-#         return render_template("ItemMessage.html", item=item, item_id=item_id, is_in_wishlist=False)
 
 
 
@@ -624,10 +616,7 @@ def forgot_password():
         token = s.dumps(email, salt="password-reset")
         print("Generated token:", token)
 
-        # Build a proper local link
-        # reset_link = url_for("reset_password", token=token, _external=True)
-        # reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")
-        # print("Reset link for testing:", reset_link)
+     
         reset_link = url_for("reset_password", token=token, _external=True)
 
 # local development host
