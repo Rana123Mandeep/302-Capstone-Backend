@@ -11,6 +11,7 @@ from flask import session
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask import jsonify, request
 from sqlalchemy import func
+from datetime import datetime
 
 
 app = Flask(__name__)  
@@ -61,6 +62,7 @@ class Products(db .Model):
     condition = db.Column(db.String(50), nullable=False)
     Productdescription = db.Column(db.Text, nullable=False)
     image_filename = db.Column(db.String(200), nullable=False) 
+    
 
     #Table for Wishlist 
 class Wishlist(db.Model):
@@ -73,45 +75,26 @@ class Wishlist(db.Model):
     user = db.relationship("User", backref="wishlist_items", lazy=True)
     product = db.relationship("Products", backref="wishlisted_by", lazy=True)
 
-#Route for add product in wishlist
-# @app.route("/toggle_wishlist/<int:product_id>")
-# def toggle_wishlist(product_id):
-#      user_id = session.get("user_id")
-#      if "user_id" not in session:
-#          flash("Please login first to view your Wishlist.","Warning")
-#          return redirect(url_for("login"))
-#      existing = Wishlist.query.filter_by(user_id=user_id, product_id=product_id).first()
 
-#      if existing:
-#             db.session.delete(existing)
-#             db.session.commit()
-#             flash("Item removed from wishlist.", "info")
-#      else:
-#             new_item = Wishlist(user_id=user_id, product_id=product_id)
-#             db.session.add(new_item)
-#             db.session.commit()
-#             flash("Item added to wishlist!", "success")
+    
+# Table for Messages
+class Message(db.Model):
+    __tablename__ = "messages"
 
-#             # Return to the same page you came from
-#             return redirect(request.referrer or url_for("wishlist"))
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=True)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    read = db.Column(db.Boolean, default=False)
 
-# #wishlist 
-# @app.route("/wishlist")
-# def Wishlist():
-#     user_id = session["user_id"]
-#     if "user_id" not in session:
-#         flash("Please login first to view your Wishlist.","Warning")
-#         return redirect(url_for("login"))
+    sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_messages")
+    receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
+    product = db.relationship("Products", backref="messages")
 
-#     wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
-#     products = [item.product for item in wishlist_items]
-   
-#     return render_template("wishlist.html")
-#     user_id = session["user_id"]
-#     wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
-#     products = [item.product for item in wishlist_items]
 
-#     return render_template("wishlist.html", products=products)
+
 # Route for toggle wishlist
 @app.route("/toggle_wishlist/<int:product_id>")
 def toggle_wishlist(product_id):
@@ -405,11 +388,157 @@ def category(category_name):
 def customer_support():
     return render_template("CustomerSupport.html")
 
-@app. route("/message_seller/<int:item_id>")
+
+
+
+# Updated message_seller route
+@app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
 def message_seller(item_id):
-      return f"This is a placeholder page for messaging item {item_id}"
+    if "user_id" not in session:
+        flash("Please login first to message sellers.", "warning")
+        return redirect(url_for("login"))
+    
+    user_id = session["user_id"]
+    item = Products.query.get(item_id)
+    
+    if not item:
+        flash("Item not found.", "danger")
+        return redirect(url_for("products"))
+    
+    # Check if item is in user's wishlist
+    is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
+    
+    if request.method == "POST":
+        message_content = request.form.get("message")
+        
+        if message_content:
+            # Get seller ID from the product
+            seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
+            
+            new_message = Message(
+                sender_id=user_id,
+                receiver_id=seller_id,
+                product_id=item_id,
+                content=message_content
+            )
+            
+            db.session.add(new_message)
+            db.session.commit()
+            
+            flash("Message sent successfully!", "success")
+            
+            # Redirect to chat with the seller
+            return redirect(url_for("chat_with_seller", item_id=item_id))
+    
+    # Prepare the item data for template
+    item_data = {
+        "name": item.Producttitle,
+        "price": item.price,
+        "category": item.category,
+        "condition": item.condition,
+        "features": item.Productdescription,
+        "image": f"uploads/{item.image_filename}"
+    }
+    
+    return render_template(
+        "ItemMessage.html",
+        item=item_data,
+        item_id=item_id,
+        is_in_wishlist=is_in_wishlist
+    )
 
+# Chat with seller route
+@app.route("/chat_with_seller/<int:item_id>")
+def chat_with_seller(item_id):
+    if "user_id" not in session:
+        flash("Please login first to chat with sellers.", "warning")
+        return redirect(url_for("login"))
+    
+    user_id = session["user_id"]
+    item = Products.query.get(item_id)
+    
+    if not item:
+        flash("Item not found.", "danger")
+        return redirect(url_for("products"))
+    
+    # Check if item is in user's wishlist
+    is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
+    
+    # Get seller ID from the product
+    seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
+    
+    # Get conversation between user and seller for this product
+    messages = Message.query.filter(
+        Message.product_id == item_id,
+        ((Message.sender_id == user_id) & (Message.receiver_id == seller_id)) |
+        ((Message.sender_id == seller_id) & (Message.receiver_id == user_id))
+    ).order_by(Message.timestamp).all()
+    
+    # Mark messages from seller as read
+    unread_messages = Message.query.filter_by(
+        receiver_id=user_id,
+        sender_id=seller_id,
+        product_id=item_id,
+        read=False
+    ).all()
+    
+    for msg in unread_messages:
+        msg.read = True
+    
+    db.session.commit()
+    
+    # Prepare item data for template
+    item_data = {
+        "name": item.Producttitle,
+        "price": item.price,
+        "category": item.category,
+        "condition": item.condition,
+        "features": item.Productdescription,
+        "image": f"uploads/{item.image_filename}"
+    }
+    
+    return render_template(
+        "chat_with_seller.html",
+        item=item_data,
+        item_id=item_id,
+        is_in_wishlist=is_in_wishlist,
+        messages=messages
+    )
 
+# Send message route
+@app.route("/send_message/<int:item_id>", methods=["POST"])
+def send_message(item_id):
+    if "user_id" not in session:
+        flash("Please login first to send messages.", "warning")
+        return redirect(url_for("login"))
+    
+    user_id = session["user_id"]
+    message_content = request.form.get("message")
+    
+    if not message_content:
+        flash("Message cannot be empty.", "danger")
+        return redirect(url_for("chat_with_seller", item_id=item_id))
+    
+    item = Products.query.get(item_id)
+    if not item:
+        flash("Item not found.", "danger")
+        return redirect(url_for("products"))
+    
+    # Get seller ID from the product
+    seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
+    
+    new_message = Message(
+        sender_id=user_id,
+        receiver_id=seller_id,
+        product_id=item_id,
+        content=message_content
+    )
+    
+    db.session.add(new_message)
+    db.session.commit()
+    
+    # Return to the chat
+    return redirect(url_for("chat_with_seller", item_id=item_id))
 
 @app.route("/itemmessage/<int:item_id>")
 def item_message(item_id):
@@ -417,6 +546,11 @@ def item_message(item_id):
     if not item:
         # Handle missing product
         return f"❌ Item with ID {item_id} not found.", 404
+
+    # Check if item is in user's wishlist
+    is_in_wishlist = False
+    if "user_id" in session:
+        is_in_wishlist = Wishlist.query.filter_by(user_id=session["user_id"], product_id=item_id).first() is not None
 
     # Prepare the item data for template
     item_data = {
@@ -428,24 +562,21 @@ def item_message(item_id):
         "image": f"uploads/{item.image_filename}"  # image path in static folder
     }
 
-
-    # ✅ return the rendered template
+    # Return the rendered template
     return render_template(
         "ItemMessage.html",
         item=item_data,
         item_id=item_id,
-      
+        is_in_wishlist=is_in_wishlist
     )
-
-
-@app.route("/chat_with_seller/<int:item_id>")
-def chat_with_seller(item_id):
-   item = Products.query.get(item_id)
-   if not item:
-        return f" Item with ID {item_id} not found", 404
+# @app.route("/chat_with_seller/<int:item_id>")
+# def chat_with_seller(item_id):
+#    item = Products.query.get(item_id)
+#    if not item:
+#         return f" Item with ID {item_id} not found", 404
     
-    # For now, render the same ItemMessage page
-        return render_template("ItemMessage.html", item=item, item_id=item_id, is_in_wishlist=False)
+#     # For now, render the same ItemMessage page
+#         return render_template("ItemMessage.html", item=item, item_id=item_id, is_in_wishlist=False)
 
 
 
