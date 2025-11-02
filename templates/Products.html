@@ -52,10 +52,24 @@
       <a href="{{ url_for('customer_support') }}" class="support-icon" title="Customer Support">🆘</a>
     
     <div class="nav-right">
-      <div class="user-icon-container">
-        <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
-        <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
-      </div>
+      <div class="user-dropdown" id="userDropdown">
+        <span class="user-icon" onclick="toggleUserMenu()" title="User Menu">👤</span>
+        <div class="user-menu" id="userMenu">
+          <div class="user-menu-header">
+            <span class="user-avatar">👤</span>
+            <div class="user-info">
+              <span class="user-name">User</span>
+              <span class="user-status">Online</span>
+            </div>
+          </div>
+          <div class="menu-divider"></div>
+          <div class="menu-actions">
+            <button onclick="logout()" class="menu-item logout-item">
+              <span class="menu-icon">🚪</span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
     </div>
   </nav>
   </nav>

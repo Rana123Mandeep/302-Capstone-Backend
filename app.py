@@ -62,6 +62,8 @@ class Products(db .Model):
     condition = db.Column(db.String(50), nullable=False)
     Productdescription = db.Column(db.Text, nullable=False)
     image_filename = db.Column(db.String(200), nullable=False) 
+    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"),nullable=True)# Add seller_id to track product owner 
+    seller = db.relationship("User", backref="products")
     
 
     #Table for Wishlist 
@@ -178,38 +180,42 @@ def wishlist():
 
 @app.route("/upload" , methods=["GET", "POST"])
 def upload():
-     if request.method == "POST":
+    if "user_id" not in session:
+        flash("Please login first to upload products.", "warning")
+        return redirect(url_for("login"))
+       
+    if request.method == "POST":
         Producttitle = request.form["title"]
         price = request.form["price"]
         category = request.form["category"]
         condition = request.form["condition"]
         Productdescription = request.form["features"]
         file = request.files["image"]
-
-        if file and allowed_file(file.filename):#uplaod file from device 
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-                file.save(filepath)
-
-                new_product = Products(
-                    Producttitle=Producttitle,
-                    price=price,
-                    category=category,
-                    condition=condition,
-                    Productdescription=Productdescription,
-                    image_filename=filename
-                )
-                db.session.add(new_product)
-                db.session.commit()
-
-                flash("✅ Product uploaded successfully!", "success")
-                return redirect(url_for("products"))
-    #  else:
-    #             flash("⚠️ Please upload a valid image file (png, jpg, jpeg, gif).", "danger")
-    
-     return render_template("Upload.html")
-
-            
+ 
+        if file and allowed_file(file.filename):  # upload file from device
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+ 
+            # IMPORTANT: Set the current user as the seller
+            new_product = Products(
+                Producttitle=Producttitle,
+                price=price,
+                category=category,
+                condition=condition,
+                Productdescription=Productdescription,
+                image_filename=filename,
+                seller_id=session["user_id"]  # Always set the seller_id
+            )
+            db.session.add(new_product)
+            db.session.commit()
+ 
+            flash("✅ Product uploaded successfully!", "success")
+            return redirect(url_for("products"))
+        else:
+            flash("⚠️ Please upload a valid image file (png, jpg, jpeg, gif).", "danger")
+ 
+    return render_template("Upload.html")            
       
 
 @app.route('/user')
@@ -372,6 +378,8 @@ def products():
 def YourListing():
     return render_template("YourListings.html")
 
+
+
 @app.route("/category/")
 def all_categories():
     products = Products.query.all()
@@ -391,45 +399,110 @@ def customer_support():
 
 
 
-# Updated message_seller route
+# # Updated message_seller route
+# @app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
+# def message_seller(item_id):
+#     if "user_id" not in session:
+#         flash("Please login first to message sellers.", "warning")
+#         return redirect(url_for("login"))
+    
+#     user_id = session["user_id"]
+#     item = Products.query.get(item_id)
+    
+#     if not item:
+#         flash("Item not found.", "danger")
+#         return redirect(url_for("products"))
+    
+#     # Check if item is in user's wishlist
+#     is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
+    
+#     if request.method == "POST":
+#         message_content = request.form.get("message")
+        
+#         if message_content:
+#             # Get seller ID from the product
+#             seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
+            
+#             new_message = Message(
+#                 sender_id=user_id,
+#                 receiver_id=seller_id,
+#                 product_id=item_id,
+#                 content=message_content
+#             )
+            
+#             db.session.add(new_message)
+#             db.session.commit()
+            
+#             flash("Message sent successfully!", "success")
+            
+#             # Redirect to chat with the seller
+#             return redirect(url_for("chat_with_seller", item_id=item_id))
+    
+#     # Prepare the item data for template
+#     item_data = {
+#         "name": item.Producttitle,
+#         "price": item.price,
+#         "category": item.category,
+#         "condition": item.condition,
+#         "features": item.Productdescription,
+#         "image": f"uploads/{item.image_filename}"
+#     }
+    
+#     return render_template(
+#         "ItemMessage.html",
+#         item=item_data,
+#         item_id=item_id,
+#         is_in_wishlist=is_in_wishlist
+#     )
+
 @app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
 def message_seller(item_id):
     if "user_id" not in session:
         flash("Please login first to message sellers.", "warning")
         return redirect(url_for("login"))
-    
+   
     user_id = session["user_id"]
     item = Products.query.get(item_id)
-    
+   
     if not item:
         flash("Item not found.", "danger")
         return redirect(url_for("products"))
-    
+   
+    # Check if item has a valid seller
+    if not item.seller_id:
+        flash("This product doesn't have a seller assigned. You cannot send messages.", "warning")
+        return redirect(url_for("products"))
+       
+    # If the user is trying to message their own product
+    if item.seller_id == user_id:
+        flash("This is your own product. You cannot message yourself.", "info")
+        return redirect(url_for("products"))
+   
     # Check if item is in user's wishlist
     is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
-    
+   
     if request.method == "POST":
         message_content = request.form.get("message")
-        
+       
         if message_content:
-            # Get seller ID from the product
-            seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
-            
+            # Get seller ID from the product (no fallback needed since we checked above)
+            seller_id = item.seller_id
+           
             new_message = Message(
                 sender_id=user_id,
                 receiver_id=seller_id,
                 product_id=item_id,
                 content=message_content
             )
-            
+           
             db.session.add(new_message)
             db.session.commit()
-            
+           
             flash("Message sent successfully!", "success")
-            
+           
             # Redirect to chat with the seller
             return redirect(url_for("chat_with_seller", item_id=item_id))
-    
+   
     # Prepare the item data for template
     item_data = {
         "name": item.Producttitle,
@@ -439,7 +512,7 @@ def message_seller(item_id):
         "features": item.Productdescription,
         "image": f"uploads/{item.image_filename}"
     }
-    
+   
     return render_template(
         "ItemMessage.html",
         item=item_data,
@@ -449,6 +522,7 @@ def message_seller(item_id):
 
 # Chat with seller route
 @app.route("/chat_with_seller/<int:item_id>")
+
 def chat_with_seller(item_id):
     if "user_id" not in session:
         flash("Please login first to chat with sellers.", "warning")
