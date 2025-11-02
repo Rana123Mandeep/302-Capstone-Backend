@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - User Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {{ ajax_style|safe }}
+  {{ jquery_script|safe }}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <h1 class="brand-logo">🛡️ Admin Dashboard</h1>
+        </div>
+        
+        <div class="nav-center">
+            <a href="{{ url_for('admin') }}" class="nav-btn active">User Management</a>
+        </div>
+        
+        <div class="nav-right">
+            <!-- Admin User Icon -->
+            <div class="user-dropdown" id="userDropdown">
+                <span class="user-icon" onclick="toggleUserMenu()" title="Admin Menu">👤</span>
+                <div class="user-menu" id="userMenu">
+                    <div class="user-menu-header">
+                        <span class="user-avatar">🛡️</span>
+                        <div class="user-info">
+                            <span class="user-name">Admin</span>
+                            <span class="user-status">● Online</span>
+                        </div>
+                    </div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-actions">
+                        <button onclick="logout()" class="menu-item logout-item">
+                            <span class="menu-icon">🚪</span>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <h1>👥 User Management</h1>
+            <p>Manage user accounts and permissions</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <h3 id="totalUsers">0</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h3 id="activeUsers">0</h3>
+                    <p>Active Users</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-info">
+                    <h3 id="inactiveUsers">0</h3>
+                    <p>Inactive Users</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🗑️</div>
+                <div class="stat-info">
+                    <h3 id="deletedUsers">0</h3>
+                    <p>Deleted Today</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="admin-controls">
+            <div class="admin-search">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="userSearch" placeholder="Search users by name, email, or ID..." onkeyup="searchUsers()">
+            </div>
+            
+            <div class="admin-filters">
+                <select id="statusFilter" onchange="filterUsers()">
+                    <option value="all">All Users</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+                
+                <select id="sortBy" onchange="sortUsers()">
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="name-asc">Name A-Z</option>
+                    <option value="name-desc">Name Z-A</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-section">
+            <div class="users-table-container">
+                <table class="users-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Joined Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-users" id="emptyUsers" style="display: none;">
+                <div class="empty-icon">👥</div>
+                <h3>No Users Found</h3>
+                <p>No users match your search criteria</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Confirm Action</h2>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" id="confirmBtn" onclick="confirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample user data (In production, this would come from backend/database)
+        let users = [
+            {
+                id: 'user_001',
+                name: 'Alex Thompson',
+                email: 'alex.thompson@email.com',
+                joinedDate: '2025-01-15',
+                status: 'active'
+            },
+            {
+                id: 'user_002',
+                name: 'Sarah Johnson',
+                email: 'sarah.j@email.com',
+                joinedDate: '2025-02-20',
+                status: 'active'
+            },
+            {
+                id: 'user_003',
+                name: 'Mike Chen',
+                email: 'mchen@email.com',
+                joinedDate: '2025-03-10',
+                status: 'active'
+            },
+            {
+                id: 'user_004',
+                name: 'Emily Davis',
+                email: 'emily.davis@email.com',
+                joinedDate: '2025-04-05',
+                status: 'active'
+            },
+            {
+                id: 'user_005',
+                name: 'John Smith',
+                email: 'jsmith@email.com',
+                joinedDate: '2025-05-12',
+                status: 'inactive'
+            }
+        ];
+
+        let filteredUsers = [...users];
+        let currentAction = null;
+        let currentUserId = null;
+        let deletedToday = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            updateStats();
+        });
+
+        // Load and display users
+        function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            const emptyState = document.getElementById('emptyUsers');
+            
+            tbody.innerHTML = '';
+            
+            if (filteredUsers.length === 0) {
+                emptyState.style.display = 'block';
+                document.querySelector('.users-table-container').style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            document.querySelector('.users-table-container').style.display = 'block';
+            
+            filteredUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.className = user.status === 'inactive' ? 'inactive-row' : '';
+                
+                row.innerHTML = `
+                    <td><strong>${user.name}</strong></td>
+                    <td>${user.email}</td>
+                    <td>${formatDate(user.joinedDate)}</td>
+                    <td>
+                        <span class="status-badge ${user.status}">
+                            ${user.status === 'active' ? '✅ Active' : '🚫 Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            ${user.status === 'active' ? 
+                                `<button class="btn-deactivate" onclick="promptDeactivate('${user.id}')" title="Deactivate User">
+                                    <span>🚫</span> Deactivate
+                                </button>` :
+                                `<button class="btn-activate" onclick="activateUser('${user.id}')" title="Activate User">
+                                    <span>✅</span> Activate
+                                </button>`
+                            }
+                            <button class="btn-delete" onclick="promptDelete('${user.id}')" title="Delete User">
+                                <span>🗑️</span> Delete
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = users.length;
+            const active = users.filter(u => u.status === 'active').length;
+            const inactive = users.filter(u => u.status === 'inactive').length;
+            
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('activeUsers').textContent = active;
+            document.getElementById('inactiveUsers').textContent = inactive;
+            document.getElementById('deletedUsers').textContent = deletedToday;
+        }
+
+        // Search users
+        function searchUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            
+            filteredUsers = users.filter(user => {
+                return user.name.toLowerCase().includes(searchTerm) ||
+                       user.email.toLowerCase().includes(searchTerm) ||
+                       user.id.toLowerCase().includes(searchTerm);
+            });
+            
+            applyFilters();
+        }
+
+        // Filter users by status
+        function filterUsers() {
+            applyFilters();
+        }
+
+        // Sort users
+        function sortUsers() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredUsers.sort((a, b) => {
+                switch(sortBy) {
+                    case 'date-desc':
+                        return new Date(b.joinedDate) - new Date(a.joinedDate);
+                    case 'date-asc':
+                        return new Date(a.joinedDate) - new Date(b.joinedDate);
+                    case 'name-asc':
+                        return a.name.localeCompare(b.name);
+                    case 'name-desc':
+                        return b.name.localeCompare(a.name);
+                    default:
+                        return 0;
+                }
+            });
+            
+            loadUsers();
+        }
+
+        // Apply all filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            filteredUsers = users.filter(user => {
+                const matchesSearch = user.name.toLowerCase().includes(searchTerm) ||
+                                    user.email.toLowerCase().includes(searchTerm) ||
+                                    user.id.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+            });
+            
+            sortUsers();
+        }
+
+        // Prompt to deactivate user
+        function promptDeactivate(userId) {
+            const user = users.find(u => u.id === userId);
+            currentAction = 'deactivate';
+            currentUserId = userId;
+            
+            document.getElementById('modalTitle').textContent = 'Deactivate User';
+            document.getElementById('modalMessage').textContent = 
+                `Are you sure you want to deactivate ${user.name}? They will not be able to access their account.`;
+            document.getElementById('confirmBtn').textContent = 'Deactivate';
+            document.getElementById('confirmBtn').className = 'btn-confirm btn-warning';
+            
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        // Prompt to delete user
+        function promptDelete(userId) {
+            const user = users.find(u => u.id === userId);
+            currentAction = 'delete';
+            currentUserId = userId;
+            
+            document.getElementById('modalTitle').textContent = 'Delete User';
+            document.getElementById('modalMessage').textContent = 
+                `Are you sure you want to permanently delete ${user.name}? This action cannot be undone!`;
+            document.getElementById('confirmBtn').textContent = 'Delete';
+            document.getElementById('confirmBtn').className = 'btn-confirm btn-danger';
+            
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        // Activate user
+        function activateUser(userId) {
+            const user = users.find(u => u.id === userId);
+            user.status = 'active';
+            
+            showNotification(`✅ ${user.name} has been activated`, 'success');
+            updateStats();
+            applyFilters();
+        }
+
+        // Confirm action
+        function confirmAction() {
+            if (currentAction === 'deactivate') {
+                deactivateUser(currentUserId);
+            } else if (currentAction === 'delete') {
+                deleteUser(currentUserId);
+            }
+            
+            closeModal();
+        }
+
+        // Deactivate user
+        function deactivateUser(userId) {
+            const user = users.find(u => u.id === userId);
+            user.status = 'inactive';
+            
+            showNotification(`🚫 ${user.name} has been deactivated`, 'warning');
+            updateStats();
+            applyFilters();
+        }
+
+        // Delete user
+        function deleteUser(userId) {
+            const userIndex = users.findIndex(u => u.id === userId);
+            const user = users[userIndex];
+            
+            users.splice(userIndex, 1);
+            deletedToday++;
+            
+            showNotification(`🗑️ ${user.name} has been deleted permanently`, 'error');
+            updateStats();
+            applyFilters();
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            currentAction = null;
+            currentUserId = null;
+        }
+
+        // Toggle user menu
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const userDropdown = document.getElementById('userDropdown');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (userDropdown && !userDropdown.contains(event.target) && userMenu.classList.contains('active')) {
+                userMenu.classList.remove('active');
+            }
+        });
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : type === 'error' ? '#dc3545' : '#2196F3'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                font-weight: 600;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+  {{ ajax_script|safe }}
+</body>
+</html>
