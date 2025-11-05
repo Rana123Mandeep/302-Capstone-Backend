@@ -99,6 +99,17 @@ class Message(db.Model):
 
 
 
+#Table for Reminder
+
+class Reminder(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(120), nullable=False)
+    location = db.Column(db.String(255), nullable=False)
+    meeting_time = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  
+
 # Route for toggle wishlist
 @app.route("/toggle_wishlist/<int:product_id>")
 def toggle_wishlist(product_id):
