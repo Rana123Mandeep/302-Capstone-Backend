@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -54,12 +53,29 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="selectedItem">📦 Item</label>
-                        <select id="selectedItem" name="selectedItem" required>
-                            <option value="">Select an item...</option>
-                            <!-- Items will be populated dynamically -->
+                        <label for="selectedItem">🏷️ Category</label>
+                        <select id="selectedItem" name="selectedItem" required onchange="toggleCustomCategory()">
+                            <option value="" selected disabled hidden>Select a category...</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="accessories">Accessories</option>
+                            <option value="sports">Sports</option>
+                            <option value="home">Home & Garden</option>
+                            <option value="other">Other</option>
                         </select>
-                        <small>Choose the item you want alerts for</small>
+                        <small>Choose the category you want alerts for</small>
+                    </div>
+                </div>
+                
+                <!-- Custom Category Input Field (Hidden by default) -->
+                <div class="form-row" id="customCategoryGroup" style="display: none;">
+                    <div class="form-group full-width">
+                        <label for="customCategory">✏️ Specify Category *</label>
+                        <input type="text" id="customCategory" name="customCategory" 
+                               placeholder="Enter the category name (e.g., Books, Toys, Furniture)"
+                               minlength="3"
+                               title="Please specify what category this is">
+                        <small>Please provide a specific category name (minimum 3 characters)</small>
                     </div>
                 </div>
                 
@@ -109,7 +125,7 @@
                     
                     <div class="form-group full-width">
                         <label for="pickupLocation">📍 Pickup Location *</label>
-                        <select id="pickupLocation" name="pickupLocation">
+                        <select id="pickupLocation" name="pickupLocation" onchange="toggleCustomLocation()">
                             <option value="">Select pickup location...</option>
                             <option value="campus-main">Main Campus - Student Center</option>
                             <option value="campus-library">Campus Library - Front Entrance</option>
@@ -117,9 +133,17 @@
                             <option value="downtown-cafe">Downtown Cafe - Central Square</option>
                             <option value="mall-entrance">Shopping Mall - Main Entrance</option>
                             <option value="park-meetup">City Park - Main Pavilion</option>
-                            <option value="other">Other Location (specify in notes)</option>
+                            <option value="other">📍 Other Location (Enter Custom Address)</option>
                         </select>
                         <small>Choose a safe, public meeting location</small>
+                    </div>
+                    
+                    <!-- Custom Location Input Field (Hidden by default) -->
+                    <div class="form-group full-width" id="customLocationGroup" style="display: none;">
+                        <label for="customLocation">🗺️ Enter Custom Location *</label>
+                        <input type="text" id="customLocation" name="customLocation" 
+                               placeholder="Enter full address or landmark (e.g., Starbucks on 5th Ave, Central Park Bench #12)">
+                        <small style="color: #666;">Please provide specific details for easy meetup</small>
                     </div>
                     
                     <div class="form-group full-width">
@@ -840,30 +864,29 @@
         }
         
         function populateItemSelect() {
+            // Categories are now pre-populated in HTML for immediate display
+            // This function is kept for compatibility but categories are already in the DOM
             const itemSelect = document.getElementById('selectedItem');
             
-            // Sample items (in real app, this would come from server)
-            const sampleItems = [
-                { id: '0', name: 'Smart Watch - $89' },
-                { id: '1', name: 'Laptop - $59' },
-                { id: '2', name: 'Pants - $120' },
-                { id: '3', name: 'T-Shirts - $15' },
-                { id: '4', name: 'Smart Phone - $55' },
-                { id: '5', name: 'Shoes - $20' }
-            ];
-            
-            // Clear existing options (except the first one)
-            while (itemSelect.children.length > 1) {
-                itemSelect.removeChild(itemSelect.lastChild);
+            // If for some reason categories aren't loaded, add them dynamically
+            if (itemSelect.children.length <= 1) {
+                const categories = [
+                    { id: 'electronics', name: 'Electronics' },
+                    { id: 'clothing', name: 'Clothing' },
+                    { id: 'accessories', name: 'Accessories' },
+                    { id: 'sports', name: 'Sports' },
+                    { id: 'home', name: 'Home & Garden' },
+                    { id: 'other', name: 'Other' }
+                ];
+                
+                // Add categories
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    itemSelect.appendChild(option);
+                });
             }
-            
-            // Add items
-            sampleItems.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.name;
-                itemSelect.appendChild(option);
-            });
         }
         
         function enableAlertsOnly() {
@@ -877,9 +900,23 @@
             }
             
             if (!itemId) {
-                alert('Please select an item first.');
+                alert('Please select a category first.');
                 document.getElementById('selectedItem').focus();
                 return;
+            }
+            
+            // Validate custom category if "other" is selected
+            if (itemId === 'other') {
+                const customCategory = document.getElementById('customCategory').value.trim();
+                if (!customCategory) {
+                    alert('Please specify what category this is.');
+                    document.getElementById('customCategory').focus();
+                    return;
+                } else if (customCategory.length < 3) {
+                    alert('Category name must be at least 3 characters long.');
+                    document.getElementById('customCategory').focus();
+                    return;
+                }
             }
             
             // Save email
@@ -889,10 +926,10 @@
             saveBookingAlert(itemId, getItemName(itemId));
             
             // Add to recent notifications
-            addRecentNotification(`Alerts enabled for ${getItemName(itemId)}`, 'Alert Setup');
+            addRecentNotification(`Alerts enabled for ${getItemName(itemId)} category`, 'Alert Setup');
             
             // Show success message and redirect
-            alert(`✅ Booking alerts enabled!\n\nYou will receive email notifications at ${email} when someone books this item for pickup.`);
+            alert(`✅ Booking alerts enabled!\n\nYou will receive email notifications at ${email} when someone books items in this category for pickup.`);
             
             // Redirect to products page
             window.location.href = '/products';
@@ -919,7 +956,17 @@
         function getItemName(itemId) {
             const itemSelect = document.getElementById('selectedItem');
             const option = itemSelect.querySelector(`option[value="${itemId}"]`);
-            return option ? option.textContent : 'Unknown Item';
+            
+            // If "other" is selected, return the custom category value
+            if (itemId === 'other') {
+                const customCategory = document.getElementById('customCategory');
+                if (customCategory && customCategory.value.trim()) {
+                    return customCategory.value.trim();
+                }
+                return 'Other Category';
+            }
+            
+            return option ? option.textContent : 'Unknown Category';
         }
         
         function saveBookingAlert(itemId, itemName) {
@@ -990,9 +1037,23 @@
             }
             
             if (!itemId) {
-                alert('❌ Please select an item.');
+                alert('❌ Please select a category.');
                 document.getElementById('selectedItem').focus();
                 return;
+            }
+            
+            // Validate custom category if "other" is selected
+            if (itemId === 'other') {
+                const customCategory = document.getElementById('customCategory').value.trim();
+                if (!customCategory) {
+                    alert('❌ Please specify what category this is.');
+                    document.getElementById('customCategory').focus();
+                    return;
+                } else if (customCategory.length < 3) {
+                    alert('❌ Category name must be at least 3 characters long.');
+                    document.getElementById('customCategory').focus();
+                    return;
+                }
             }
             
             // Save email
@@ -1000,12 +1061,20 @@
             
             if (isFullBooking) {
                 // Handle full booking
+                const pickupLocation = formData.get('pickupLocation');
+                const customLocation = formData.get('customLocation');
+                
+                // Use custom location if "other" is selected
+                const finalLocation = pickupLocation === 'other' && customLocation ? 
+                                     customLocation.trim() : pickupLocation;
+                
                 const bookingData = {
                     email: email,
                     itemId: itemId,
                     pickupDate: formData.get('pickupDate'),
                     pickupTime: formData.get('pickupTime'),
-                    pickupLocation: formData.get('pickupLocation'),
+                    pickupLocation: finalLocation,
+                    pickupLocationRaw: pickupLocation, // Store the dropdown value
                     notes: formData.get('pickupNotes') || ''
                 };
                 
@@ -1041,6 +1110,14 @@
             
             if (!data.pickupLocation) {
                 errors.push('• Please select a pickup location');
+            } else if (data.pickupLocation === 'other') {
+                // Validate custom location
+                const customLocation = document.getElementById('customLocation').value.trim();
+                if (!customLocation) {
+                    errors.push('• Please enter a custom location address');
+                } else if (customLocation.length < 10) {
+                    errors.push('• Custom location must be at least 10 characters (provide specific details)');
+                }
             }
             
             if (errors.length > 0) {
@@ -1128,26 +1205,91 @@
         
         function getLocationName(locationValue) {
             const locationMap = {
-                'campus-main': 'Main Campus',
-                'campus-library': 'Campus Library',
-                'campus-parking': 'Main Parking Lot',
-                'downtown-cafe': 'Downtown Cafe ',
-                'mall-entrance': 'Shopping Mall',
-                'park-meetup': 'City Park',
-                'other': 'Other Location'
+                'campus-main': 'Main Campus - Student Center',
+                'campus-library': 'Campus Library - Front Entrance', 
+                'campus-parking': 'Main Parking Lot - Near Entrance',
+                'downtown-cafe': 'Downtown Cafe - Central Square',
+                'mall-entrance': 'Shopping Mall - Main Entrance',
+                'park-meetup': 'City Park - Main Pavilion'
             };
-            return locationMap[locationValue] || locationValue;
+            
+            // If it's a predefined location, return the mapped name
+            if (locationMap[locationValue]) {
+                return locationMap[locationValue];
+            }
+            
+            // If it's "other", check if there's a custom location stored
+            if (locationValue === 'other') {
+                const customLocation = document.getElementById('customLocation');
+                if (customLocation && customLocation.value.trim()) {
+                    return customLocation.value.trim();
+                }
+                return 'Other Location (Custom)';
+            }
+            
+            // Otherwise, return the value as-is (for custom locations)
+            return locationValue;
+        }
+        
+        function toggleCustomLocation() {
+            const pickupLocation = document.getElementById('pickupLocation').value;
+            const customLocationGroup = document.getElementById('customLocationGroup');
+            const customLocationInput = document.getElementById('customLocation');
+            
+            if (pickupLocation === 'other') {
+                // Show custom location input
+                customLocationGroup.style.display = 'block';
+                customLocationInput.required = true;
+                
+                // Scroll to the custom input
+                setTimeout(() => {
+                    customLocationGroup.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    customLocationInput.focus();
+                }, 100);
+            } else {
+                // Hide custom location input
+                customLocationGroup.style.display = 'none';
+                customLocationInput.required = false;
+                customLocationInput.value = '';
+            }
+        }
+        
+        function toggleCustomCategory() {
+            const selectedCategory = document.getElementById('selectedItem').value;
+            const customCategoryGroup = document.getElementById('customCategoryGroup');
+            const customCategoryInput = document.getElementById('customCategory');
+            
+            if (selectedCategory === 'other') {
+                // Show custom category input
+                customCategoryGroup.style.display = 'block';
+                customCategoryInput.required = true;
+                
+                // Scroll to the custom input
+                setTimeout(() => {
+                    customCategoryGroup.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    customCategoryInput.focus();
+                }, 100);
+            } else {
+                // Hide custom category input
+                customCategoryGroup.style.display = 'none';
+                customCategoryInput.required = false;
+                customCategoryInput.value = '';
+            }
         }
         
         function clearBookingForm() {
             document.getElementById('pickupBookingForm').reset();
             document.getElementById('fullBookingFields').style.display = 'none';
+            document.getElementById('customLocationGroup').style.display = 'none';
+            document.getElementById('customCategoryGroup').style.display = 'none';
             document.getElementById('submitBtn').innerHTML = '🔔 Enable Alerts';
             
             // Remove required attributes
             document.getElementById('pickupDate').required = false;
             document.getElementById('pickupTime').required = false;
             document.getElementById('pickupLocation').required = false;
+            document.getElementById('customLocation').required = false;
+            document.getElementById('customCategory').required = false;
             
             // Restore saved email
             const savedEmail = localStorage.getItem('userEmail');
