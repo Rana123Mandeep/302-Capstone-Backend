@@ -386,6 +386,9 @@ def products():
 @app.route("/YourListing")
 def YourListing():
     return render_template("YourListings.html")
+@app.route("/dashboard")
+def dashboard():
+    return render_template("Dashboard.html")
 
 
 

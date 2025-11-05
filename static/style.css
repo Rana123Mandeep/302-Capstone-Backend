@@ -12,12 +12,24 @@
 
 
 
-   /* General Styles */
+ 
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     background: #f7f7f7;
     margin: 0;
     padding: 0;
+}
+
+/* ==================== GLOBAL BUTTON OVERRIDE ==================== */
+/* Force all buttons to use 8px border-radius */
+button,
+.btn,
+[class*="btn-"],
+[class*="-btn"],
+input[type="submit"],
+input[type="button"] {
+    border-radius: 8px !important;
 }
 
 /* Login, Signup, and Forgot Password Pages */
@@ -272,39 +284,74 @@ body {
 }
 /* Navbar Styles */
 .navbar {
-    background-color: #333; /* Dark background for the navbar */
+    background: #3a3a3a;
     color: white;
-    padding: 15px 20px;
+    padding: 18px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .nav-left {
     display: flex;
     align-items: center;
-    gap: 20px; /* Space between title and buttons */
+    gap: 20px;
 }
 
-.nav-left h2 {
+.nav-left h2,
+.brand-logo {
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 800;
     margin: 0;
     color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.5px;
+}
+
+.nav-center {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-btn {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.nav-btn:hover {
+    color: white;
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+}
+
+.nav-btn.active {
+    color: white;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 .search-bar {
     display: flex;
     align-items: center;
-    margin: 0 20px; /* Add horizontal margin for spacing */
+    margin: 0 20px;
 }
 
 .search-bar input {
-    width: 300px; /* Fixed width instead of responsive width */
+    width: 300px;
     padding: 8px 15px;
     border: 1px solid #ddd;
     border-radius: 20px;
@@ -313,10 +360,266 @@ body {
 }
 
 .search-bar input:focus {
-    border-color: #007BFF; /* Highlight border on focus */
+    border-color: #007BFF;
     outline: none;
 }
 
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ==========================================
+   NAVBAR SEARCH & FILTER (Products Page)
+   ========================================== */
+
+.nav-search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    max-width: 380px;
+}
+
+.nav-search-container:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-search-container:focus-within {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #667eea;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.search-icon {
+    font-size: 16px;
+    margin-right: 10px;
+    opacity: 0.8;
+}
+
+.nav-search-container input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 14px;
+    width: 100%;
+    min-width: 250px;
+}
+
+.nav-search-container input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.clear-search {
+    cursor: pointer;
+    font-size: 18px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+    padding: 4px 8px;
+    margin-left: 8px;
+}
+
+.clear-search:hover {
+    opacity: 1;
+}
+
+/* Filter Button in Navbar */
+.nav-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.nav-filter-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.nav-filter-btn .filter-icon {
+    font-size: 16px;
+}
+
+/* Categories Dropdown Menu */
+.categories-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 80px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    min-width: 320px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.categories-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.filter-section h4 {
+    color: #1a202c;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-section select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1a202c;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-section select:hover {
+    border-color: #cbd5e0;
+    background: white;
+}
+
+.filter-section select:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.price-inputs input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1a202c;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.price-inputs input:hover {
+    border-color: #cbd5e0;
+    background: white;
+}
+
+.price-inputs input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.price-inputs span {
+    color: #718096;
+    font-weight: 600;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+/* Search Results Info */
+.search-results-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    margin-bottom: 20px;
+    border-radius: 10px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* No Results Message */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.no-results-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-results h3 {
+    color: #1a202c;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.no-results p {
+    color: #718096;
+    font-size: 16px;
+    margin-bottom: 30px;
+}
 
 .nav-right {
     display: flex;
@@ -553,60 +856,7 @@ body {
     border-top: 1px solid #eee;
 }
 
-.btn-primary,
-.btn-secondary {
-    padding: 12px 30px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 120px;
-}
-
-.btn-primary {
-    background: #007BFF;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #0056b3;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-
-.btn-secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #545b62;
-    transform: translateY(-2px);
-}
-
-.btn-chat {
-    padding: 12px 30px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 120px;
-    background: #28a745;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-chat:hover {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
+/* Old button definitions removed - now using global button styles above */
 
 /* Item Message Page Styles */
 .item-message-container {
@@ -865,23 +1115,7 @@ body {
     margin-top: 15px;
 }
 
-.btn-remove {
-    background: #dc3545;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.btn-remove:hover {
-    background: #c82333;
-    transform: translateY(-1px);
-}
+/* Old btn-remove removed - using global button styles */
 
 /* Empty Wishlist */
 .empty-wishlist {
@@ -910,25 +1144,186 @@ body {
     margin-bottom: 30px;
 }
 
-/* Buttons */
+/* ==================== GLOBAL BUTTON STYLES ==================== */
+
+/* Primary Buttons - Purple Gradient (Main Actions) */
+.btn-primary,
 .nav-left .btn,
-.nav-right .btn {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.nav-right .btn,
+.btn-browse-products,
+.apply-filters-btn,
+button[type="submit"]:not(.btn-secondary):not(.btn-cancel):not(.btn-delete):not(.btn-deactivate):not(.btn-activate) {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 25px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    display: inline-block;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     position: relative;
     overflow: hidden;
+    letter-spacing: 0.3px;
 }
 
+.btn-primary:hover,
+.nav-left .btn:hover,
+.nav-right .btn:hover,
+.btn-browse-products:hover,
+.apply-filters-btn:hover,
+button[type="submit"]:not(.btn-secondary):not(.btn-cancel):not(.btn-delete):not(.btn-deactivate):not(.btn-activate):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:active,
+button[type="submit"]:not(.btn-secondary):not(.btn-cancel):not(.btn-delete):not(.btn-deactivate):not(.btn-activate):active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Secondary Buttons - Light Gray (Alternative Actions) */
+.btn-secondary,
+.btn-cancel,
+.clear-filters-btn,
+.clear-search-btn {
+    padding: 12px 24px;
+    background: #e2e8f0;
+    color: #1a202c;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+}
+
+.btn-secondary:hover,
+.btn-cancel:hover,
+.clear-filters-btn:hover,
+.clear-search-btn:hover {
+    background: #cbd5e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Chat/Message Buttons - Blue */
+.btn-chat {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+}
+
+.btn-chat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+}
+
+/* Delete/Remove Buttons - Red */
+.btn-delete,
+.btn-remove {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-delete:hover,
+.btn-remove:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+/* Activate Buttons - Green */
+.btn-activate {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-activate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Deactivate Buttons - Orange/Yellow */
+.btn-deactivate {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-deactivate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.4);
+}
+
+/* Active State for Navigation Buttons */
+.nav-left .btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* Buttons */
 .nav-left .btn::before,
 .nav-right .btn::before {
     content: '';
@@ -946,22 +1341,7 @@ body {
     left: 100%;
 }
 
-.nav-left .btn.active {
-    background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
-    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
-}
-
-.nav-left .btn:hover,
-.nav-right .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
-}
-
-.nav-left .btn:active,
-.nav-right .btn:active {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
-}
+/* Old button styles - keeping for backward compatibility */
 
 
 /* Products Grid */
@@ -1037,6 +1417,15 @@ body {
     font-weight: 700;
     color: #007BFF;
     margin: 0;
+}
+
+/* Hide sender_id and receiver_id on products page */
+.product-ids {
+    display: none !important;
+}
+
+.conversation-info {
+    display: none !important;
 }
 
 /* Responsive Design */
@@ -4733,6 +5122,7 @@ input:checked + .slider:before {
         margin: 0 auto 15px auto;
     }
 }
+
 /* ==========================================
    DASHBOARD STYLES
    ========================================== */
@@ -5684,9 +6074,6 @@ input:checked + .slider:before {
     }
 }
 
-
-
-
 /* ==========================================
    ADMIN PAGE STYLES
    ========================================== */
@@ -6200,23 +6587,3 @@ input:checked + .slider:before {
         padding: 25px;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
