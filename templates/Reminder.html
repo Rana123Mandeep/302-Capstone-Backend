@@ -1,0 +1,1765 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Reminders & Notifications</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {{ ajax_style|safe }}
+  {{ jquery_script|safe }}
+</head>
+<body class="reminder-page">
+    <!--Navbar-->
+    <nav class="navbar">
+        <div class="nav-left">
+            <h2>🔔 Reminders & Notifications</h2>
+        </div>
+        
+        <div class="nav-right">
+            <!-- User Icon - Logout -->
+            <div class="user-icon-container">
+                <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
+                <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
+            </div>
+        </div>
+    </nav>
+
+    <!--Reminder Container-->
+    <div class="reminder-container">
+        <div class="reminder-header">
+            <h1>📋 Booking Alert & Reservation Center</h1>
+            <p style="color: #666; margin-bottom: 30px;">
+                🔔 Set up alerts to get notified when someone books items for pickup<br>
+                📧 Automatic email notifications with pickup dates, times, and locations
+            </p>
+        </div>
+
+        <!-- Booking Form Section -->
+        <div class="booking-form-section" id="bookingSection">
+            <h2>📅 Schedule Pickup & Enable Alerts</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                Set up booking alerts and schedule pickup for your selected item
+            </p>
+            
+            <form id="pickupBookingForm" class="booking-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userEmail">📧 Email Address *</label>
+                        <input type="email" id="userEmail" name="userEmail" required 
+                               placeholder="your.email@example.com"
+                               title="Enter your email for booking alerts and confirmations">
+                        <small>We'll send pickup alerts and confirmations to this email</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="selectedItem">📦 Item</label>
+                        <select id="selectedItem" name="selectedItem" required>
+                            <option value="">Select an item...</option>
+                            <!-- Items will be populated dynamically -->
+                        </select>
+                        <small>Choose the item you want alerts for</small>
+                    </div>
+                </div>
+                
+                <div class="alert-actions" style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007BFF;">
+                    <h4 style="margin: 0 0 10px 0; color: #007BFF;">🔔 Booking Alert Options</h4>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button type="button" onclick="enableAlertsOnly()" class="btn-secondary">
+                            🔔 Enable Alerts Only
+                        </button>
+                        <button type="button" onclick="showFullBookingForm()" class="btn-primary">
+                            📅 Schedule Pickup + Alerts
+                        </button>
+                    </div>
+                    <small style="color: #666; margin-top: 10px; display: block;">
+                        Choose "Alerts Only" to get notified when others book this item, or "Schedule Pickup" to book it yourself.
+                    </small>
+                </div>
+                
+                <div id="fullBookingFields" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pickupDate">📅 Pickup Date *</label>
+                            <input type="date" id="pickupDate" name="pickupDate"
+                                   title="Select your preferred pickup date">
+                            <small>Choose any date from today onwards</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pickupTime">⏰ Pickup Time *</label>
+                            <select id="pickupTime" name="pickupTime">
+                                <option value="">Select time...</option>
+                                <option value="09:00">9:00 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="13:00">1:00 PM</option>
+                                <option value="14:00">2:00 PM</option>
+                                <option value="15:00">3:00 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="17:00">5:00 PM</option>
+                                <option value="18:00">6:00 PM</option>
+                                <option value="19:00">7:00 PM</option>
+                            </select>
+                            <small>Available pickup hours: 9:00 AM - 7:00 PM</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="pickupLocation">📍 Pickup Location *</label>
+                        <select id="pickupLocation" name="pickupLocation">
+                            <option value="">Select pickup location...</option>
+                            <option value="campus-main">Main Campus - Student Center</option>
+                            <option value="campus-library">Campus Library - Front Entrance</option>
+                            <option value="campus-parking">Main Parking Lot - Near Entrance</option>
+                            <option value="downtown-cafe">Downtown Cafe - Central Square</option>
+                            <option value="mall-entrance">Shopping Mall - Main Entrance</option>
+                            <option value="park-meetup">City Park - Main Pavilion</option>
+                            <option value="other">Other Location (specify in notes)</option>
+                        </select>
+                        <small>Choose a safe, public meeting location</small>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="pickupNotes">📝 Additional Notes (Optional)</label>
+                        <textarea id="pickupNotes" name="pickupNotes" rows="3" 
+                                  placeholder="Any special instructions, alternative location details, or specific meetup information..."></textarea>
+                        <small>Include any special instructions or location details</small>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="clearBookingForm()" class="btn-secondary">🗑️ Clear</button>
+                    <button type="button" onclick="goBackToItem()" class="btn-secondary">← Back to Item</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">🔔 Enable Alerts</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Booking Alert Status -->
+        <div class="booking-alert-status" id="alertStatus">
+            <h2>📨 Your Booking Alerts</h2>
+            <div id="alertStatusContent">
+                <div class="no-alerts" id="noAlerts">
+                    <span class="no-alerts-icon">🔔</span>
+                    <p>No booking alerts set up yet</p>
+                    <small>Use the form above to enable alerts for items you're interested in</small>
+                </div>
+            </div>
+            
+            <div class="recent-bookings">
+                <h3>📅 Recent Bookings (Last 24 Hours)</h3>
+                <div id="recentBookings">
+                    <div class="no-bookings" id="noBookings">
+                        <span class="no-bookings-icon">📦</span>
+                        <p>No recent bookings</p>
+                        <small>When someone books an item you're watching, it will appear here</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="notification-settings-section">
+            <h2>⚙️ Notification Settings</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>📱 Push Notifications</strong>
+                    <p>Get instant alerts when sellers respond to your messages</p>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pushNotifications" onchange="togglePushNotifications()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>📧 Email Notifications</strong>
+                    <p>Receive email updates about your bookings and messages</p>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="emailNotifications" onchange="toggleEmailNotifications()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>⏰ Pickup Reminders</strong>
+                    <p>Get reminded 1 hour before your scheduled pickup time</p>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pickupReminders" onchange="togglePickupReminders()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>💰 Price Drop Alerts</strong>
+                    <p>Notify when items in your wishlist drop in price</p>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="priceAlerts" onchange="togglePriceAlerts()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Reminders -->
+        <div class="active-reminders-section">
+            <h2>🔔 Active Reminders</h2>
+            <div id="activeReminders" class="reminders-list">
+                <!-- Reminders will be populated here -->
+                <div class="no-reminders" id="noReminders">
+                    <span class="no-reminders-icon">📭</span>
+                    <p>No active reminders yet</p>
+                    <small>Enable notifications for items you're interested in to see reminders here</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="recent-notifications-section">
+            <h2>📨 Recent Notifications</h2>
+            <div id="recentNotifications" class="notifications-list">
+                <!-- Recent notifications will be populated here -->
+                <div class="no-notifications" id="noNotifications">
+                    <span class="no-notifications-icon">📪</span>
+                    <p>No recent notifications</p>
+                    <small>Your notification history will appear here</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="button" onclick="clearAllNotifications()" class="btn-secondary">🗑️ Clear All</button>
+            <button type="button" onclick="testNotifications()" class="btn-primary">🔔 Test Notifications</button>
+            <button type="button" onclick="window.location.href='{{ url_for('products') }}'" class="btn-primary">← Back to Products</button>
+        </div>
+    </div>
+
+    <!-- Pop-up Notification -->
+    <div id="notification-popup" class="notification-popup">
+        <div class="notification-content">
+            <span class="notification-icon" id="notificationEmoji">🔔</span>
+            <span class="notification-text">Notification settings updated!</span>
+            <span class="close-notification" onclick="closeNotification()">✕</span>
+        </div>
+    </div>
+
+    <script>
+        // Notification settings state
+        let notificationSettings = {
+            push: false,
+            email: false,
+            pickup: false,
+            price: false
+        };
+
+        // Active reminders array
+        let activeReminders = [];
+
+        // Recent notifications array
+        let recentNotifications = [];
+
+        function toggleLogout() {
+            const logoutText = document.getElementById('logoutText');
+            const isVisible = logoutText.style.display !== 'none';
+            
+            if (isVisible) {
+                logoutText.style.display = 'none';
+            } else {
+                logoutText.style.display = 'inline-block';
+            }
+        }
+        
+        function logout() {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+
+        function togglePushNotifications() {
+            const checkbox = document.getElementById('pushNotifications');
+            notificationSettings.push = checkbox.checked;
+            
+            if (checkbox.checked) {
+                showNotification('📱 Push notifications enabled!', '🔔');
+                addRecentNotification('Push notifications enabled', 'Settings');
+            } else {
+                showNotification('📱 Push notifications disabled!', '🔕');
+                addRecentNotification('Push notifications disabled', 'Settings');
+            }
+            
+            saveSettings();
+        }
+
+        function toggleEmailNotifications() {
+            const checkbox = document.getElementById('emailNotifications');
+            notificationSettings.email = checkbox.checked;
+            
+            if (checkbox.checked) {
+                showNotification('📧 Email notifications enabled!', '📧');
+                addRecentNotification('Email notifications enabled', 'Settings');
+            } else {
+                showNotification('📧 Email notifications disabled!', '📪');
+                addRecentNotification('Email notifications disabled', 'Settings');
+            }
+            
+            saveSettings();
+        }
+
+        function togglePickupReminders() {
+            const checkbox = document.getElementById('pickupReminders');
+            notificationSettings.pickup = checkbox.checked;
+            
+            if (checkbox.checked) {
+                showNotification('⏰ Pickup reminders enabled!', '⏰');
+                addRecentNotification('Pickup reminders enabled', 'Settings');
+            } else {
+                showNotification('⏰ Pickup reminders disabled!', '⏰');
+                addRecentNotification('Pickup reminders disabled', 'Settings');
+            }
+            
+            saveSettings();
+        }
+
+        function togglePriceAlerts() {
+            const checkbox = document.getElementById('priceAlerts');
+            notificationSettings.price = checkbox.checked;
+            
+            if (checkbox.checked) {
+                showNotification('💰 Price drop alerts enabled!', '💰');
+                addRecentNotification('Price drop alerts enabled', 'Settings');
+            } else {
+                showNotification('💰 Price drop alerts disabled!', '💸');
+                addRecentNotification('Price drop alerts disabled', 'Settings');
+            }
+            
+            saveSettings();
+        }
+
+        function addRecentNotification(message, type) {
+            const timestamp = new Date().toLocaleTimeString();
+            const notification = {
+                message: message,
+                type: type,
+                timestamp: timestamp,
+                id: Date.now()
+            };
+            
+            recentNotifications.unshift(notification);
+            
+            // Keep only last 10 notifications
+            if (recentNotifications.length > 10) {
+                recentNotifications = recentNotifications.slice(0, 10);
+            }
+            
+            updateRecentNotificationsDisplay();
+            saveNotifications();
+        }
+
+        function updateRecentNotificationsDisplay() {
+            const container = document.getElementById('recentNotifications');
+            const noNotifications = document.getElementById('noNotifications');
+            
+            if (recentNotifications.length === 0) {
+                noNotifications.style.display = 'block';
+                return;
+            }
+            
+            noNotifications.style.display = 'none';
+            
+            // Clear existing notifications (except the no-notifications div)
+            const existingItems = container.querySelectorAll('.notification-item');
+            existingItems.forEach(item => item.remove());
+            
+            // Add new notifications
+            recentNotifications.forEach(notification => {
+                const notificationDiv = document.createElement('div');
+                notificationDiv.className = 'notification-item';
+                notificationDiv.innerHTML = `
+                    <div class="notification-header">
+                        <span class="notification-type">${notification.type}</span>
+                        <span class="notification-time">${notification.timestamp}</span>
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                    <button class="remove-notification" onclick="removeNotification(${notification.id})">✕</button>
+                `;
+                container.appendChild(notificationDiv);
+            });
+        }
+
+        function removeNotification(id) {
+            recentNotifications = recentNotifications.filter(n => n.id !== id);
+            updateRecentNotificationsDisplay();
+            saveNotifications();
+        }
+
+        function clearAllNotifications() {
+            // Count items to be cleared
+            const notificationCount = recentNotifications.length;
+            const reminderCount = activeReminders.length;
+            const totalCount = notificationCount + reminderCount;
+            
+            // Show custom confirmation modal
+            showClearAllModal(totalCount, notificationCount, reminderCount, () => {
+                // User confirmed - proceed with clearing
+                recentNotifications = [];
+                activeReminders = [];
+                updateRecentNotificationsDisplay();
+                updateActiveRemindersDisplay();
+                saveNotifications();
+                showNotification('All notifications cleared!', '🗑️');
+            });
+        }
+        
+        function showClearAllModal(totalCount, notificationCount, reminderCount, onConfirm) {
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'clearAllModalOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.75);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(12px);
+                animation: fadeIn 0.3s ease-out;
+            `;
+            
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                background: white;
+                padding: 45px;
+                border-radius: 25px;
+                box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+                max-width: 520px;
+                width: 90%;
+                text-align: center;
+                animation: clearModalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                position: relative;
+                border: 3px solid transparent;
+                background-clip: padding-box;
+            `;
+            
+            // Add dynamic gradient border based on count
+            const gradientColor = totalCount > 10 ? '#ff6b6b' : totalCount > 5 ? '#ffa500' : '#4ecdc4';
+            modal.style.background = `
+                linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, ${gradientColor}, #667eea, #764ba2) border-box
+            `;
+            
+            modal.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <div style="font-size: 4.5rem; margin-bottom: 20px; animation: clearBounce 0.8s ease-out;">🗑️</div>
+                    <h2 style="color: #2d3748; margin: 0 0 15px 0; font-size: 2rem; font-weight: 700;">
+                        Clear All Notifications?
+                    </h2>
+                    <p style="color: #718096; margin: 0; font-size: 1.1rem; line-height: 1.5;">
+                        This will permanently remove all your notification history
+                    </p>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-radius: 20px; padding: 30px; margin: 30px 0; border: 2px solid #feb2b2;">
+                    <h3 style="margin: 0 0 20px 0; color: #c53030; font-size: 1.3rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">⚠️</span>
+                        Items to be deleted
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                        <div style="background: rgba(239, 68, 68, 0.1); border-radius: 15px; padding: 20px; border: 2px solid rgba(239, 68, 68, 0.2);">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">📨</div>
+                            <div style="font-size: 2rem; font-weight: bold; color: #dc2626; margin-bottom: 5px;">${notificationCount}</div>
+                            <div style="color: #7f1d1d; font-weight: 600; font-size: 0.9rem;">Notifications</div>
+                        </div>
+                        <div style="background: rgba(245, 158, 11, 0.1); border-radius: 15px; padding: 20px; border: 2px solid rgba(245, 158, 11, 0.2);">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">⏰</div>
+                            <div style="font-size: 2rem; font-weight: bold; color: #d97706; margin-bottom: 5px;">${reminderCount}</div>
+                            <div style="color: #92400e; font-weight: 600; font-size: 0.9rem;">Reminders</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(220, 38, 38, 0.1); border-left: 4px solid #dc2626; padding: 15px 20px; border-radius: 10px; margin-top: 20px;">
+                        <p style="margin: 0; color: #991b1b; font-size: 1rem; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.3rem;">🚨</span>
+                            <strong>Total: ${totalCount} items will be permanently deleted</strong>
+                        </p>
+                    </div>
+                </div>
+                
+                ${totalCount === 0 ? `
+                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%); border-radius: 15px; padding: 25px; margin: 25px 0; border: 2px solid #93c5fd;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">✨</div>
+                    <p style="margin: 0; color: #1e40af; font-size: 1.1rem; font-weight: 500;">
+                        Your notification center is already clean!
+                    </p>
+                </div>
+                ` : `
+                <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 15px; padding: 20px; margin: 25px 0; border: 2px solid #86efac;">
+                    <p style="margin: 0; color: #14532d; font-size: 0.95rem; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.3rem;">💡</span>
+                        <span><strong>Remember:</strong> You can always generate new notifications through app usage</span>
+                    </p>
+                </div>
+                `}
+                
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 35px;">
+                    ${totalCount > 0 ? `
+                    <button id="confirmClearAll" style="
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        color: white;
+                        border: none;
+                        padding: 16px 30px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+                        min-width: 160px;
+                    ">
+                        🗑️ Yes, Clear All
+                    </button>
+                    ` : ''}
+                    <button id="cancelClearAll" style="
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        border: none;
+                        padding: 16px 30px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                        min-width: 160px;
+                    ">
+                        ${totalCount === 0 ? '✅ Got It' : '🔒 Keep Safe'}
+                    </button>
+                </div>
+                
+                <p style="color: #a0aec0; font-size: 0.85rem; margin: 25px 0 0 0; font-style: italic;">
+                    ${totalCount > 0 ? 'This action cannot be undone • ' : ''}Press Escape to cancel • Click outside to close
+                </p>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            // Add enhanced animation styles
+            if (!document.getElementById('clearAllModalStyles')) {
+                const style = document.createElement('style');
+                style.id = 'clearAllModalStyles';
+                style.textContent = `
+                    @keyframes clearModalSlideIn {
+                        from { 
+                            opacity: 0; 
+                            transform: translateY(-60px) scale(0.7) rotateY(15deg); 
+                        }
+                        to { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1) rotateY(0deg); 
+                        }
+                    }
+                    @keyframes clearBounce {
+                        0%, 20%, 60%, 100% { transform: translateY(0) rotate(0deg); }
+                        40% { transform: translateY(-15px) rotate(-10deg); }
+                        80% { transform: translateY(-8px) rotate(5deg); }
+                    }
+                    @keyframes clearModalSlideOut {
+                        from { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1); 
+                        }
+                        to { 
+                            opacity: 0; 
+                            transform: translateY(-40px) scale(0.8); 
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Add button interactions
+            const confirmBtn = modal.querySelector('#confirmClearAll');
+            const cancelBtn = modal.querySelector('#cancelClearAll');
+            
+            // Enhanced hover effects
+            [confirmBtn, cancelBtn].forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.transform = 'translateY(-4px) scale(1.03)';
+                        btn.style.boxShadow = btn === confirmBtn ? 
+                            '0 10px 30px rgba(239, 68, 68, 0.7)' : 
+                            '0 10px 30px rgba(102, 126, 234, 0.7)';
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.transform = 'translateY(0) scale(1)';
+                        btn.style.boxShadow = btn === confirmBtn ? 
+                            '0 4px 15px rgba(239, 68, 68, 0.4)' : 
+                            '0 4px 15px rgba(102, 126, 234, 0.4)';
+                    });
+                }
+            });
+            
+            // Button click handlers
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', () => {
+                    closeClearAllModal();
+                    onConfirm();
+                });
+            }
+            
+            cancelBtn.addEventListener('click', () => {
+                closeClearAllModal();
+                if (totalCount > 0) {
+                    showMiniNotification('🔒 Notifications kept safe!', '#4CAF50');
+                }
+            });
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeClearAllModal();
+                }
+            });
+            
+            // Close on Escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeClearAllModal();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+            
+            // Focus the safe button by default
+            setTimeout(() => cancelBtn.focus(), 100);
+        }
+        
+        function closeClearAllModal() {
+            const overlay = document.getElementById('clearAllModalOverlay');
+            if (overlay) {
+                const modal = overlay.querySelector('div');
+                modal.style.animation = 'clearModalSlideOut 0.3s ease-in';
+                overlay.style.animation = 'fadeOut 0.3s ease-in';
+                setTimeout(() => {
+                    overlay.remove();
+                }, 300);
+            }
+        }
+
+        function testNotifications() {
+            showNotification('🎉 Test notification successful!', '✅');
+            addRecentNotification('Test notification sent', 'System');
+        }
+
+        function updateActiveRemindersDisplay() {
+            const container = document.getElementById('activeReminders');
+            const noReminders = document.getElementById('noReminders');
+            
+            if (activeReminders.length === 0) {
+                noReminders.style.display = 'block';
+                return;
+            }
+            
+            noReminders.style.display = 'none';
+            
+            // Clear existing reminders (except the no-reminders div)
+            const existingItems = container.querySelectorAll('.reminder-item');
+            existingItems.forEach(item => item.remove());
+            
+            // Add new reminders
+            activeReminders.forEach(reminder => {
+                const reminderDiv = document.createElement('div');
+                reminderDiv.className = 'reminder-item';
+                reminderDiv.innerHTML = `
+                    <div class="reminder-header">
+                        <span class="reminder-type">${reminder.type}</span>
+                        <span class="reminder-time">${reminder.time}</span>
+                    </div>
+                    <div class="reminder-message">${reminder.message}</div>
+                    <button class="remove-reminder" onclick="removeReminder(${reminder.id})">✕</button>
+                `;
+                container.appendChild(reminderDiv);
+            });
+        }
+
+        function removeReminder(id) {
+            activeReminders = activeReminders.filter(r => r.id !== id);
+            updateActiveRemindersDisplay();
+            saveNotifications();
+        }
+
+        function showNotification(message, emoji = '🔔') {
+            const popup = document.getElementById('notification-popup');
+            const notificationText = document.querySelector('.notification-text');
+            const notificationEmoji = document.getElementById('notificationEmoji');
+            const notificationContent = document.querySelector('.notification-content');
+            
+            notificationText.textContent = message;
+            notificationEmoji.textContent = emoji;
+            
+            // Set color based on action
+            if (message.includes('disabled') || message.includes('cleared')) {
+                notificationContent.style.background = '#f44336'; // Red
+            } else {
+                notificationContent.style.background = '#4CAF50'; // Green
+            }
+            
+            popup.style.display = 'flex';
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                closeNotification();
+            }, 3000);
+        }
+        
+        function closeNotification() {
+            const popup = document.getElementById('notification-popup');
+            popup.style.display = 'none';
+        }
+
+        function saveSettings() {
+            localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('notificationSettings');
+            if (saved) {
+                notificationSettings = JSON.parse(saved);
+                
+                // Update checkboxes
+                document.getElementById('pushNotifications').checked = notificationSettings.push;
+                document.getElementById('emailNotifications').checked = notificationSettings.email;
+                document.getElementById('pickupReminders').checked = notificationSettings.pickup;
+                document.getElementById('priceAlerts').checked = notificationSettings.price;
+            }
+        }
+
+        function saveNotifications() {
+            localStorage.setItem('recentNotifications', JSON.stringify(recentNotifications));
+            localStorage.setItem('activeReminders', JSON.stringify(activeReminders));
+        }
+
+        function loadNotifications() {
+            const savedNotifications = localStorage.getItem('recentNotifications');
+            const savedReminders = localStorage.getItem('activeReminders');
+            
+            if (savedNotifications) {
+                recentNotifications = JSON.parse(savedNotifications);
+                updateRecentNotificationsDisplay();
+            }
+            
+            if (savedReminders) {
+                activeReminders = JSON.parse(savedReminders);
+                updateActiveRemindersDisplay();
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadNotifications();
+            initializeBookingForm();
+            handleURLParameters();
+            
+            // Add some sample notifications if none exist
+            if (recentNotifications.length === 0) {
+                addRecentNotification('Welcome to the notification center!', 'System');
+            }
+        });
+        
+        function handleURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = urlParams.get('item_id');
+            const itemName = urlParams.get('item_name');
+            const action = urlParams.get('action');
+            
+            if (itemId && itemName && action === 'enable_alert') {
+                // Scroll to booking section
+                document.getElementById('bookingSection').scrollIntoView({ behavior: 'smooth' });
+                
+                // Pre-select the item
+                setTimeout(() => {
+                    const itemSelect = document.getElementById('selectedItem');
+                    itemSelect.value = itemId;
+                    
+                    // Highlight the booking section
+                    const bookingSection = document.getElementById('bookingSection');
+                    bookingSection.style.border = '3px solid #FF6B35';
+                    bookingSection.style.boxShadow = '0 0 20px rgba(255,107,53,0.3)';
+                    
+                    // Show a welcome message
+                    showNotification(
+                        `🔔 Set up alerts for "${itemName}"`,
+                        '💬'
+                    );
+                }, 500);
+            }
+        }
+        
+        function initializeBookingForm() {
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('pickupDate').min = today;
+            
+            // Load saved email if exists
+            const savedEmail = localStorage.getItem('userEmail');
+            if (savedEmail) {
+                document.getElementById('userEmail').value = savedEmail;
+            }
+            
+            // Populate items from available products
+            populateItemSelect();
+            
+            // Update booking alerts display
+            updateBookingAlertsDisplay();
+            
+            // Add form submit handler
+            document.getElementById('pickupBookingForm').addEventListener('submit', handleBookingSubmit);
+        }
+        
+        function populateItemSelect() {
+            const itemSelect = document.getElementById('selectedItem');
+            
+            // Sample items (in real app, this would come from server)
+            const sampleItems = [
+                { id: '0', name: 'Smart Watch - $89' },
+                { id: '1', name: 'Laptop - $59' },
+                { id: '2', name: 'Pants - $120' },
+                { id: '3', name: 'T-Shirts - $15' },
+                { id: '4', name: 'Smart Phone - $55' },
+                { id: '5', name: 'Shoes - $20' }
+            ];
+            
+            // Clear existing options (except the first one)
+            while (itemSelect.children.length > 1) {
+                itemSelect.removeChild(itemSelect.lastChild);
+            }
+            
+            // Add items
+            sampleItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                itemSelect.appendChild(option);
+            });
+        }
+        
+        function enableAlertsOnly() {
+            const email = document.getElementById('userEmail').value;
+            const itemId = document.getElementById('selectedItem').value;
+            
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address first.');
+                document.getElementById('userEmail').focus();
+                return;
+            }
+            
+            if (!itemId) {
+                alert('Please select an item first.');
+                document.getElementById('selectedItem').focus();
+                return;
+            }
+            
+            // Save email
+            localStorage.setItem('userEmail', email);
+            
+            // Enable alerts
+            saveBookingAlert(itemId, getItemName(itemId));
+            
+            // Add to recent notifications
+            addRecentNotification(`Alerts enabled for ${getItemName(itemId)}`, 'Alert Setup');
+            
+            // Show success message and redirect
+            alert(`✅ Booking alerts enabled!\n\nYou will receive email notifications at ${email} when someone books this item for pickup.`);
+            
+            // Redirect to products page
+            window.location.href = '/products';
+        }
+        
+        function showFullBookingForm() {
+            const fullFields = document.getElementById('fullBookingFields');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            fullFields.style.display = 'block';
+            submitBtn.innerHTML = '📅 Schedule Pickup + Enable Alerts';
+            
+            // Make fields required
+            document.getElementById('pickupDate').required = true;
+            document.getElementById('pickupTime').required = true;
+            document.getElementById('pickupLocation').required = true;
+            
+            // Scroll to show the new fields
+            setTimeout(() => {
+                fullFields.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+        
+        function getItemName(itemId) {
+            const itemSelect = document.getElementById('selectedItem');
+            const option = itemSelect.querySelector(`option[value="${itemId}"]`);
+            return option ? option.textContent : 'Unknown Item';
+        }
+        
+        function saveBookingAlert(itemId, itemName) {
+            // Get existing alerts or create new array
+            let bookingAlerts = JSON.parse(localStorage.getItem('bookingAlerts') || '[]');
+            
+            // Check if alert already exists
+            const existingAlert = bookingAlerts.find(alert => alert.itemId === itemId);
+            
+            if (!existingAlert) {
+                const alertData = {
+                    itemId: itemId,
+                    itemName: itemName,
+                    enabled: true,
+                    dateCreated: new Date().toISOString(),
+                    emailSent: false
+                };
+                
+                bookingAlerts.push(alertData);
+                localStorage.setItem('bookingAlerts', JSON.stringify(bookingAlerts));
+                
+                // Update the display
+                updateBookingAlertsDisplay();
+                
+                // Send to server for email notification setup
+                fetch('/api/enable_booking_alert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        item_id: itemId,
+                        item_name: itemName,
+                        user_email: getUserEmail()
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Booking alert saved to server');
+                        addRecentNotification(`📧 Email alerts enabled for ${itemName}`, 'Alert Setup');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving booking alert:', error);
+                });
+            }
+        }
+        
+        function getUserEmail() {
+            return document.getElementById('userEmail').value || localStorage.getItem('userEmail') || '';
+        }
+        
+        function handleBookingSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const email = formData.get('userEmail');
+            const itemId = formData.get('selectedItem');
+            const isFullBooking = document.getElementById('fullBookingFields').style.display !== 'none';
+            
+            // Basic validation
+            if (!email || !email.includes('@')) {
+                alert('❌ Please enter a valid email address.');
+                document.getElementById('userEmail').focus();
+                return;
+            }
+            
+            if (!itemId) {
+                alert('❌ Please select an item.');
+                document.getElementById('selectedItem').focus();
+                return;
+            }
+            
+            // Save email
+            localStorage.setItem('userEmail', email);
+            
+            if (isFullBooking) {
+                // Handle full booking
+                const bookingData = {
+                    email: email,
+                    itemId: itemId,
+                    pickupDate: formData.get('pickupDate'),
+                    pickupTime: formData.get('pickupTime'),
+                    pickupLocation: formData.get('pickupLocation'),
+                    notes: formData.get('pickupNotes') || ''
+                };
+                
+                if (!validateBookingForm(bookingData)) {
+                    return;
+                }
+                
+                createBooking(bookingData);
+            } else {
+                // Just enable alerts
+                enableAlertsOnly();
+            }
+        }
+        
+        function validateBookingForm(data) {
+            const errors = [];
+            
+            if (!data.pickupDate) {
+                errors.push('• Please select a pickup date');
+            } else {
+                const selectedDate = new Date(data.pickupDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    errors.push('• Pickup date cannot be in the past');
+                }
+            }
+            
+            if (!data.pickupTime) {
+                errors.push('• Please select a pickup time');
+            }
+            
+            if (!data.pickupLocation) {
+                errors.push('• Please select a pickup location');
+            }
+            
+            if (errors.length > 0) {
+                alert(`❌ Please fix these errors:\n\n${errors.join('\n')}`);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function createBooking(bookingData) {
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '⏳ Scheduling...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call to create booking
+            fetch('/api/create_reservation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    item_id: bookingData.itemId,
+                    pickup_date: bookingData.pickupDate,
+                    pickup_time: bookingData.pickupTime,
+                    pickup_location: bookingData.pickupLocation,
+                    email: bookingData.email,
+                    notes: bookingData.notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const itemName = getItemName(bookingData.itemId);
+                    
+                    // Add to recent notifications
+                    addRecentNotification(`Pickup scheduled for ${itemName}`, 'Booking');
+                    
+                    // Add to recent bookings display
+                    addRecentBooking({
+                        itemName: itemName,
+                        pickupDate: bookingData.pickupDate,
+                        pickupTime: bookingData.pickupTime,
+                        location: getLocationName(bookingData.pickupLocation),
+                        reservationId: data.reservation_id,
+                        alertsSent: data.alerts_sent || 0
+                    });
+                    
+                    // Show success message with alert information
+                    let alertMessage = `✅ Pickup Scheduled Successfully!\n\n` +
+                        `Item: ${itemName}\n` +
+                        `Date: ${bookingData.pickupDate}\n` +
+                        `Time: ${bookingData.pickupTime}\n` +
+                        `Location: ${getLocationName(bookingData.pickupLocation)}\n` +
+                        `Your Email: ${bookingData.email}\n` +
+                        `Reservation ID: ${data.reservation_id || 'N/A'}`;
+                    
+                    if (data.alerts_sent && data.alerts_sent > 0) {
+                        alertMessage += `\n\n📧 ALERT NOTIFICATIONS SENT!\n` +
+                            `${data.alerts_sent} users with booking alerts for this item have been notified via email.`;
+                    }
+                    
+                    alert(alertMessage);
+                    
+                    // Redirect to products page
+                    window.location.href = '/products';
+                    
+                } else {
+                    alert(`❌ Booking Failed\n\n${data.message || 'Unable to schedule pickup. Please try again.'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Booking error:', error);
+                alert('❌ Network Error\n\nUnable to connect to server. Please check your connection and try again.');
+            })
+            .finally(() => {
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+        
+        function getLocationName(locationValue) {
+            const locationMap = {
+                'campus-main': 'Main Campus',
+                'campus-library': 'Campus Library',
+                'campus-parking': 'Main Parking Lot',
+                'downtown-cafe': 'Downtown Cafe ',
+                'mall-entrance': 'Shopping Mall',
+                'park-meetup': 'City Park',
+                'other': 'Other Location'
+            };
+            return locationMap[locationValue] || locationValue;
+        }
+        
+        function clearBookingForm() {
+            document.getElementById('pickupBookingForm').reset();
+            document.getElementById('fullBookingFields').style.display = 'none';
+            document.getElementById('submitBtn').innerHTML = '🔔 Enable Alerts';
+            
+            // Remove required attributes
+            document.getElementById('pickupDate').required = false;
+            document.getElementById('pickupTime').required = false;
+            document.getElementById('pickupLocation').required = false;
+            
+            // Restore saved email
+            const savedEmail = localStorage.getItem('userEmail');
+            if (savedEmail) {
+                document.getElementById('userEmail').value = savedEmail;
+            }
+            
+            showNotification('🗑️ Form cleared', '📋');
+        }
+        
+        function goBackToItem() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = urlParams.get('item_id');
+            
+            if (itemId) {
+                window.location.href = `/item/${itemId}/message`;
+            } else {
+                window.location.href = '/products';
+            }
+        }
+        
+        function updateBookingAlertsDisplay() {
+            const container = document.getElementById('alertStatusContent');
+            const noAlerts = document.getElementById('noAlerts');
+            const bookingAlerts = JSON.parse(localStorage.getItem('bookingAlerts') || '[]');
+            
+            if (bookingAlerts.length === 0) {
+                noAlerts.style.display = 'block';
+                return;
+            }
+            
+            noAlerts.style.display = 'none';
+            
+            // Clear existing alerts
+            const existingItems = container.querySelectorAll('.alert-item');
+            existingItems.forEach(item => item.remove());
+            
+            // Add current alerts
+            bookingAlerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `
+                    <div class="alert-header">
+                        <span class="alert-item-name">📦 ${alert.itemName}</span>
+                        <span class="alert-status">🔔 Active</span>
+                    </div>
+                    <div class="alert-details">
+                        <small>📧 Email alerts enabled since ${new Date(alert.dateCreated).toLocaleDateString()}</small>
+                    </div>
+                    <button class="remove-alert" onclick="removeBookingAlert('${alert.itemId}')">Remove Alert</button>
+                `;
+                container.appendChild(alertDiv);
+            });
+        }
+        
+        function removeBookingAlert(itemId) {
+            // Get alert details before removing
+            const bookingAlerts = JSON.parse(localStorage.getItem('bookingAlerts') || '[]');
+            const alertToRemove = bookingAlerts.find(alert => alert.itemId === itemId);
+            const itemName = alertToRemove ? alertToRemove.itemName : 'this item';
+            
+            // Show custom confirmation modal instead of browser confirm
+            showConfirmationModal(itemName, alertToRemove, () => {
+                // User confirmed - proceed with removal
+                let updatedAlerts = bookingAlerts.filter(alert => alert.itemId !== itemId);
+                localStorage.setItem('bookingAlerts', JSON.stringify(updatedAlerts));
+                
+                // Update display
+                updateBookingAlertsDisplay();
+                
+                // Send to server to disable
+                fetch('/api/disable_booking_alert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ item_id: itemId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show detailed popup notification
+                        showAlertDisabledPopup(alertToRemove);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing booking alert:', error);
+                    // Still show popup even if server request fails
+                    showAlertDisabledPopup(alertToRemove);
+                });
+            });
+        }
+        
+        function showConfirmationModal(itemName, alertData, onConfirm) {
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'confirmationModalOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(10px);
+                animation: fadeIn 0.3s ease-out;
+            `;
+            
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                background: white;
+                padding: 40px;
+                border-radius: 25px;
+                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+                max-width: 480px;
+                width: 90%;
+                text-align: center;
+                animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                position: relative;
+                border: 3px solid transparent;
+                background-clip: padding-box;
+            `;
+            
+            // Add gradient border effect
+            modal.style.background = `
+                linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #667eea, #764ba2, #f093fb) border-box
+            `;
+            
+            const email = alertData ? alertData.email : '';
+            const dateCreated = alertData ? new Date(alertData.dateCreated).toLocaleDateString() : '';
+            
+            modal.innerHTML = `
+                <div style="margin-bottom: 25px;">
+                    <div style="font-size: 4rem; margin-bottom: 15px; animation: bounce 0.6s ease-out;">⚠️</div>
+                    <h2 style="color: #2d3748; margin: 0 0 10px 0; font-size: 1.8rem; font-weight: 700;">
+                        Disable Booking Alert?
+                    </h2>
+                    <p style="color: #718096; margin: 0; font-size: 1rem; line-height: 1.4;">
+                        This action will stop all email notifications for this item
+                    </p>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-radius: 15px; padding: 25px; margin: 25px 0; text-align: left; border: 2px solid #feb2b2;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px;">
+                        <span style="font-size: 2rem; flex-shrink: 0;">📦</span>
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0 0 5px 0; color: #2d3748; font-size: 1.2rem; font-weight: 600;">
+                                ${itemName}
+                            </h3>
+                            ${email ? `<p style="margin: 5px 0; color: #4a5568; font-size: 0.9rem;"><strong>📧 Email:</strong> ${email}</p>` : ''}
+                            ${dateCreated ? `<p style="margin: 5px 0; color: #4a5568; font-size: 0.9rem;"><strong>📅 Active since:</strong> ${dateCreated}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(245, 101, 101, 0.1); border-left: 4px solid #f56565; padding: 12px 15px; border-radius: 8px;">
+                        <p style="margin: 0; color: #c53030; font-size: 0.9rem; font-weight: 500;">
+                            <span style="font-size: 1.1rem;">🔔</span> You'll no longer receive notifications when someone books this item
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%); border-radius: 12px; padding: 15px; margin: 20px 0; border: 1px solid #81e6d9;">
+                    <p style="margin: 0; color: #234e52; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.2rem;">💡</span>
+                        <span><strong>Tip:</strong> You can re-enable alerts anytime from the item page</span>
+                    </p>
+                </div>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                    <button id="confirmDisable" style="
+                        background: linear-gradient(135deg, #fc8181, #f56565);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+                        min-width: 140px;
+                    ">
+                        🔕 Yes, Disable
+                    </button>
+                    <button id="cancelDisable" style="
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                        min-width: 140px;
+                    ">
+                        📱 Keep Active
+                    </button>
+                </div>
+                
+                <p style="color: #a0aec0; font-size: 0.8rem; margin: 20px 0 0 0; font-style: italic;">
+                    Press Escape to cancel • Click outside to close
+                </p>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            // Add enhanced animation styles
+            if (!document.getElementById('confirmationModalStyles')) {
+                const style = document.createElement('style');
+                style.id = 'confirmationModalStyles';
+                style.textContent = `
+                    @keyframes modalSlideIn {
+                        from { 
+                            opacity: 0; 
+                            transform: translateY(-50px) scale(0.8) rotateX(10deg); 
+                        }
+                        to { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1) rotateX(0deg); 
+                        }
+                    }
+                    @keyframes bounce {
+                        0%, 20%, 60%, 100% { transform: translateY(0); }
+                        40% { transform: translateY(-10px); }
+                        80% { transform: translateY(-5px); }
+                    }
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes modalSlideOut {
+                        from { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1); 
+                        }
+                        to { 
+                            opacity: 0; 
+                            transform: translateY(-30px) scale(0.9); 
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Add button interactions
+            const confirmBtn = modal.querySelector('#confirmDisable');
+            const cancelBtn = modal.querySelector('#cancelDisable');
+            
+            // Enhanced hover effects
+            [confirmBtn, cancelBtn].forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'translateY(-3px) scale(1.02)';
+                    btn.style.boxShadow = btn === confirmBtn ? 
+                        '0 8px 25px rgba(245, 101, 101, 0.6)' : 
+                        '0 8px 25px rgba(102, 126, 234, 0.6)';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translateY(0) scale(1)';
+                    btn.style.boxShadow = btn === confirmBtn ? 
+                        '0 4px 15px rgba(245, 101, 101, 0.4)' : 
+                        '0 4px 15px rgba(102, 126, 234, 0.4)';
+                });
+            });
+            
+            // Button click handlers
+            confirmBtn.addEventListener('click', () => {
+                closeConfirmationModal();
+                onConfirm();
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                closeConfirmationModal();
+                // Add a small success notification for keeping the alert
+                showMiniNotification('🔔 Alert kept active!', '#4CAF50');
+            });
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeConfirmationModal();
+                }
+            });
+            
+            // Close on Escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeConfirmationModal();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+            
+            // Focus the cancel (safe) button by default
+            setTimeout(() => cancelBtn.focus(), 100);
+        }
+        
+        function closeConfirmationModal() {
+            const overlay = document.getElementById('confirmationModalOverlay');
+            if (overlay) {
+                const modal = overlay.querySelector('div');
+                modal.style.animation = 'modalSlideOut 0.3s ease-in';
+                overlay.style.animation = 'fadeOut 0.3s ease-in';
+                setTimeout(() => {
+                    overlay.remove();
+                }, 300);
+            }
+        }
+        
+        function showMiniNotification(message, color = '#4CAF50') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${color};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 25px;
+                font-weight: 600;
+                z-index: 10001;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                animation: slideInRight 0.4s ease-out;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.4s ease-in';
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
+            
+            // Add slide animations if not already present
+            if (!document.getElementById('miniNotificationStyles')) {
+                const style = document.createElement('style');
+                style.id = 'miniNotificationStyles';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        
+        function showAlertDisabledPopup(alertData) {
+            // Create popup overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'alertDisabledOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.3s ease-out;
+            `;
+            
+            // Create popup content
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                max-width: 500px;
+                width: 90%;
+                text-align: center;
+                animation: slideIn 0.4s ease-out;
+                position: relative;
+            `;
+            
+            const itemName = alertData ? alertData.itemName : 'Unknown Item';
+            const email = alertData ? alertData.email : '';
+            const dateCreated = alertData ? new Date(alertData.dateCreated).toLocaleDateString() : '';
+            
+            popup.innerHTML = `
+                <div style="font-size: 4rem; margin-bottom: 20px;">🔕</div>
+                <h2 style="color: #e74c3c; margin-bottom: 15px; font-size: 1.8rem; font-weight: 700;">
+                    Booking Alert Disabled
+                </h2>
+                <div style="background: #fff5f5; border: 2px solid #fed7d7; border-radius: 15px; padding: 25px; margin: 25px 0; text-align: left;">
+                    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.2rem;">📦</span>
+                        <div>
+                            <strong style="color: #2d3748; display: block;">Item:</strong> 
+                            <span style="color: #4a5568; font-size: 1.1rem;">${itemName}</span>
+                        </div>
+                    </div>
+                    ${email ? `
+                    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.2rem;">📧</span>
+                        <div>
+                            <strong style="color: #2d3748; display: block;">Email:</strong> 
+                            <span style="color: #4a5568; font-size: 1.1rem;">${email}</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${dateCreated ? `
+                    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.2rem;">📅</span>
+                        <div>
+                            <strong style="color: #2d3748; display: block;">Alert Created:</strong> 
+                            <span style="color: #4a5568; font-size: 1.1rem;">${dateCreated}</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.2rem;">🕒</span>
+                        <div>
+                            <strong style="color: #2d3748; display: block;">Disabled:</strong> 
+                            <span style="color: #4a5568; font-size: 1.1rem;">${new Date().toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%); color: white; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">✨</div>
+                    <p style="margin: 0; line-height: 1.6; font-weight: 500;">
+                        You will no longer receive email notifications when someone books this item for pickup.
+                    </p>
+                </div>
+                <p style="color: #718096; margin: 20px 0; line-height: 1.6; font-size: 0.95rem;">
+                    Want to stay updated? You can re-enable alerts anytime by visiting the item page and clicking the notification bell 🔔
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+                    <button onclick="closeAlertDisabledPopup()" style="
+                        background: linear-gradient(45deg, #667eea, #764ba2);
+                        color: white;
+                        border: none;
+                        padding: 15px 30px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+                    ">
+                        ✅ Got It
+                    </button>
+                    <button onclick="goToProducts()" style="
+                        background: #6c757d;
+                        color: white;
+                        border: none;
+                        padding: 15px 30px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+                    ">
+                        🛍️ Browse Products
+                    </button>
+                </div>
+            `;
+            
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+            
+            // Add animation styles
+            if (!document.getElementById('popupAnimationStyles')) {
+                const style = document.createElement('style');
+                style.id = 'popupAnimationStyles';
+                style.textContent = `
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes slideIn {
+                        from { 
+                            opacity: 0; 
+                            transform: translateY(-30px) scale(0.9); 
+                        }
+                        to { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1); 
+                        }
+                    }
+                    @keyframes fadeOut {
+                        from { opacity: 1; }
+                        to { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Add button hover effects
+            const buttons = popup.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'translateY(-3px)';
+                    btn.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.3)';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translateY(0)';
+                    btn.style.boxShadow = btn.textContent.includes('Got') ? 
+                        '0 4px 15px rgba(102, 126, 234, 0.3)' : 
+                        '0 4px 15px rgba(108, 117, 125, 0.3)';
+                });
+            });
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeAlertDisabledPopup();
+                }
+            });
+            
+            // Close on Escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeAlertDisabledPopup();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+            
+            // Auto-close after 10 seconds
+            setTimeout(() => {
+                if (document.getElementById('alertDisabledOverlay')) {
+                    closeAlertDisabledPopup();
+                }
+            }, 10000);
+        }
+        
+        function closeAlertDisabledPopup() {
+            const overlay = document.getElementById('alertDisabledOverlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    overlay.remove();
+                }, 300);
+            }
+        }
+        
+        function goToProducts() {
+            window.location.href = '/products';
+        }
+        
+        function addRecentBooking(bookingData) {
+            const container = document.getElementById('recentBookings');
+            const noBookings = document.getElementById('noBookings');
+            
+            noBookings.style.display = 'none';
+            
+            const bookingDiv = document.createElement('div');
+            bookingDiv.className = 'booking-item';
+            bookingDiv.innerHTML = `
+                <div class="booking-header">
+                    <span class="booking-item-name">📅 ${bookingData.itemName}</span>
+                    <span class="booking-time">Just booked</span>
+                </div>
+                <div class="booking-details">
+                    <div>📅 Date: ${bookingData.pickupDate}</div>
+                    <div>⏰ Time: ${bookingData.pickupTime}</div>
+                    <div>📍 Location: ${bookingData.location}</div>
+                    <div>🎫 ID: ${bookingData.reservationId}</div>
+                    ${bookingData.alertsSent > 0 ? `<div style="color: #4CAF50;">📧 ${bookingData.alertsSent} alert emails sent</div>` : ''}
+                </div>
+            `;
+            
+            // Insert at the beginning
+            const firstChild = container.firstElementChild;
+            if (firstChild && firstChild !== noBookings) {
+                container.insertBefore(bookingDiv, firstChild);
+            } else {
+                container.appendChild(bookingDiv);
+            }
+            
+            // Keep only last 5 bookings
+            const bookingItems = container.querySelectorAll('.booking-item');
+            if (bookingItems.length > 5) {
+                bookingItems[bookingItems.length - 1].remove();
+            }
+        }
+
+        // Global function to add notifications from other pages
+        window.addNotificationReminder = function(itemName, type, time) {
+            const reminder = {
+                message: `Reminder for ${itemName}`,
+                type: type,
+                time: time,
+                id: Date.now()
+            };
+            
+            activeReminders.push(reminder);
+            updateActiveRemindersDisplay();
+            saveNotifications();
+        };
+    </script>
+  {{ ajax_script|safe }}
+</body>
+</html>
