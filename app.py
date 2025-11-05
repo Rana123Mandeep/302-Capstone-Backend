@@ -51,6 +51,8 @@ class User(db.Model):
     last_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(512), nullable=False)
+
+
 #Table for upload file in products 
 class Products(db .Model):
     __tablename__="products"
@@ -367,6 +369,13 @@ def index():
     return render_template("login.html")
 
 
+@app.route("/admin")
+def admin():
+    
+    return render_template(
+        "Admin.html"
+      
+    )
 
 
 @app.route("/products")
@@ -764,6 +773,8 @@ def reset_password(token):
 def reset_password_missing_token():
     flash("Invalid or missing password reset token.", "danger")
     return redirect(url_for("forgot_password"))
+
+
 
 
 if __name__ == "__main__":
