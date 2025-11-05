@@ -376,7 +376,9 @@ def admin():
         "Admin.html"
       
     )
-
+@app.route("/reminder")
+def reminder():
+   return render_template("Reminder.html")
 
 @app.route("/products")
 def products():

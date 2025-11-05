@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>Message Seller - {{ item.name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {{ ajax_style|safe }}
+  {{ jquery_script|safe }}
 </head>
 <body>
     <!--Navbar-->
@@ -27,11 +30,10 @@
         <!--Item Details-->
         <div class="item-details">
             <div class="item-image">
-               <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
-
+                <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
             </div>
-
-             <div class="seller-info">
+            
+            <div class="seller-info">
                 <div class="seller-details">
                     <h4>👤 Seller Information</h4>
                     <div class="seller-card clickable-seller-card" onclick="showSellerProfile()" title="Click to view seller profile and reviews">
@@ -56,46 +58,169 @@
                     </div>
                 </div>
             </div>
+            
             <div class="item-info">
                 <h1>{{ item.name }}</h1>
                 <p class="item-price">${{ item.price }}</p>
-                {% if item.category %}
-                    <p class="item-category"><strong>Category:</strong> {{ item.category }}</p>
-                {% endif %}
-                {% if item.condition %}
-                    <p class="item-condition"><strong>Condition:</strong> {{ item.condition }}</p>
-                {% endif %}
-                {% if item.features %}
-                    <p class="item-features"><strong>Description</strong> {{ item.features }}</p>
-                {% endif %}
+                
+                <!-- Detailed Product Information -->
+                <div class="product-details-section">
+                    <h3>📋 Product Details</h3>
+                    
+                    {% if item.get('category') %}
+                        <div class="detail-item">
+                            <strong>🏷️ Category:</strong> 
+                            <span class="detail-value">{{ item.category }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if item.get('condition') %}
+                        <div class="detail-item">
+                            <strong>✅ Condition:</strong> 
+                            <span class="detail-value condition-{{ item.condition.lower().replace(' ', '-') }}">
+                                {{ item.condition }}
+                                {% if item.condition.lower() == 'excellent' %}
+                                    - Like new, minimal signs of use
+                                {% elif item.condition.lower() == 'good' %}
+                                    - Well maintained, minor wear only
+                                {% elif item.condition.lower() == 'fair' %}
+                                    - Functional with visible wear
+                                {% elif item.condition.lower() == 'new' %}
+                                    - Brand new, unused condition
+                                {% elif item.condition.lower() == 'used' %}
+                                    - Previously owned, good working order
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% else %}
+                        <div class="detail-item">
+                            <strong>✅ Condition:</strong> 
+                            <span class="detail-value condition-excellent">Excellent - Like new, minimal signs of use</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if item.get('features') %}
+                        <div class="detail-item">
+                            <strong>🔧 Features:</strong>
+                            <div class="detail-value">{{ item.features }}</div>
+                        </div>
+                    {% else %}
+                        <div class="detail-item">
+                            <strong>🔧 Features:</strong>
+                            <div class="detail-value">
+                                {% set item_category = item.get('category', '').lower() %}
+                                {% set item_name = item.get('name', '').lower() %}
+                                {% if 'electronics' in item_category or 'phone' in item_name or 'laptop' in item_name or 'watch' in item_name %}
+                                    • Latest technology and specifications<br>
+                                    • Excellent performance and reliability<br>
+                                    • All original accessories included<br>
+                                    • Warranty coverage available
+                                {% elif 'clothing' in item_category or 'shirt' in item_name or 'pants' in item_name %}
+                                    • Premium quality fabric<br>
+                                    • Comfortable fit and design<br>
+                                    • Machine washable<br>
+                                    • Versatile styling options
+                                {% elif 'fashion' in item_category or 'shoes' in item_name %}
+                                    • Stylish and trendy design<br>
+                                    • Comfortable for daily wear<br>
+                                    • Durable construction<br>
+                                    • Available in popular sizes
+                                {% else %}
+                                    • High quality construction<br>
+                                    • Durable materials<br>
+                                    • Great value for money<br>
+                                    • Ready for immediate use
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="detail-item">
+                        <strong>💎 Benefits:</strong>
+                        <div class="detail-value">
+                            {% set item_category = item.get('category', '').lower() %}
+                            {% set item_name = item.get('name', '').lower() %}
+                            {% if 'electronics' in item_category or 'phone' in item_name or 'laptop' in item_name or 'watch' in item_name %}
+                                • Excellent value compared to retail price<br>
+                                • Thoroughly tested and verified working<br>
+                                • Safe pickup with item demonstration<br>
+                                • Chat to schedule convenient pickup time
+                            {% elif 'clothing' in item_category or 'shirt' in item_name or 'pants' in item_name %}
+                                • Significant savings on designer clothing<br>
+                                • Pre-washed and ready to wear<br>
+                                • Flexible pickup times for your convenience<br>
+                                • Try before you buy option available
+                            {% elif 'fashion' in item_category or 'shoes' in item_name %}
+                                • Authentic brand at reduced price<br>
+                                • Carefully maintained condition<br>
+                                • Easy pickup coordination via chat<br>
+                                • Perfect for style-conscious buyers
+                            {% else %}
+                                • Excellent value for the price<br>
+                                • Flexible pickup times available<br>
+                                • Safe and convenient pickup location<br>
+                                • Chat to book your preferred time slot
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <strong>💰 Price Information:</strong>
+                        <div class="detail-value">
+                            <div class="price-breakdown">
+                                <span class="current-price">${{ item.price }}</span>
+                                <span class="price-note">💡 Best offer accepted</span>
+                            </div>
+                            <small class="price-details">• No hidden fees • Cash or digital payment • Free pickup</small>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <strong>📦 Item Status & Pickup:</strong>
+                        <div class="detail-value">
+                            <span class="status-available">✅ Available for Pickup</span>
+                            {% set item_category = item.get('category', '').lower() %}
+                            {% set item_name = item.get('name', '').lower() %}
+                            {% if 'electronics' in item_category or 'phone' in item_name or 'laptop' in item_name or 'watch' in item_name %}
+                                <br><small>Pickup available: Mon-Sat 10AM-8PM (Electronics testing time included)</small>
+                                <br><small>Bring charger if available for testing</small>
+                            {% elif 'clothing' in item_category or 'shirt' in item_name or 'pants' in item_name %}
+                                <br><small>Pickup available: Daily 9AM-7PM (Try-on time available)</small>
+                                <br><small>Size exchange possible if discussed beforehand</small>
+                            {% elif 'fashion' in item_category or 'shoes' in item_name %}
+                                <br><small>Pickup available: Mon-Sat 9AM-7PM (Fitting time available)</small>
+                                <br><small>Bring socks for shoe fitting if needed</small>
+                            {% else %}
+                                <br><small>Pickup available: Mon-Sat 9AM-7PM</small>
+                                <br><small>Location will be shared after booking confirmation</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!--Message Box-->
         <div class="message-box">
-            <h2>Send Message to Seller</h2>
+            <h2>📧 Contact Seller</h2>
             <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
-                💬 Sending a message will start a chat conversation with the seller
+                💬 Start a conversation with the seller to discuss details and arrange pickup
             </p>
             <form action="{{ url_for('message_seller', item_id=item_id) }}" method="POST">
-                <textarea name="message" placeholder="Hi, is this item available?" rows="4" required></textarea>
+                <textarea name="message" placeholder="Hi! I'm interested in this item. Is it still available? When would be a good time to arrange pickup?" rows="4" required></textarea>
                 <div class="message-actions">
                     <div class="spacer"></div>
                     <!--Action Icons-->
                     <div class="action-icons">
-                        <span title="Enable Notifications" onclick="toggleNotifications()" id="notificationIcon">🔔</span>
+                        <span title="Setup Booking Alerts" onclick="toggleBookingAlerts('{{ item_id }}', '{{ item.name }}')" id="notificationIcon" style="cursor: pointer;">🔔</span>
                         <span class="save-btn" title="{% if is_in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}" onclick="toggleWishlist('{{ item_id }}')" id="wishlistIcon">
                             {% if is_in_wishlist %}★{% else %}☆{% endif %}
                         </span>
                     </div>
-                               <div class="button-group">
-                   <a href="{{ url_for('products') }}" class="btn btn-secondary">Cancel</a>
-
-
-
- <a href="{{ url_for('chat_with_seller', item_id=item_id) }}'" class="btn-chat">💬 Start Chat</a>
-
-                        <button type="submit" class="btn-primary">📤 Send & Chat</button>
+                    <div class="button-group">
+                        <button type="button" onclick="window.location.href='{{ url_for('products') }}'" class="btn-secondary">Cancel</button>
+                        <button type="button" onclick="window.location.href='{{ url_for('chat_with_seller', item_id=item_id) }}'" class="btn-chat">💬 Chat Now</button>
+                        <button type="submit" class="btn-primary">📤 Send Message</button>
                     </div>
                 </div>
             </form>
@@ -127,20 +252,28 @@
             window.location.href = "{{ url_for('logout') }}";
         }
         
-        function toggleNotifications() {
-            const icon = document.getElementById('notificationIcon');
-            const isEnabled = icon.classList.contains('enabled');
+        function toggleBookingAlerts(itemId, itemName) {
+            // Instead of showing a prompt, redirect to the reminder page with item info
+            const params = new URLSearchParams({
+                item_id: itemId,
+                item_name: itemName,
+                action: 'enable_alert'
+            });
             
-            if (isEnabled) {
-                icon.classList.remove('enabled');
-                icon.textContent = '🔔';
-                icon.title = 'Enable Notifications';
-                alert('Notifications disabled for this item');
-            } else {
-                icon.classList.add('enabled');
-                icon.textContent = '🔕';
-                icon.title = 'Disable Notifications';
-                alert('Notifications enabled! You will be notified of price changes and updates');
+            window.location.href = `{{ url_for('reminder') }}?${params.toString()}`;
+        }
+        
+        function checkExistingBookingAlerts() {
+            const itemId = '{{ item_id }}';
+            const bookingAlerts = JSON.parse(localStorage.getItem('bookingAlerts') || '[]');
+            const existingAlert = bookingAlerts.find(alert => alert.itemId === itemId);
+            
+            if (existingAlert && existingAlert.enabled) {
+                const icon = document.getElementById('notificationIcon');
+                icon.classList.add('alert-enabled');
+                icon.style.color = '#FF6B35';
+                icon.style.animation = 'pulse 1s infinite';
+                icon.title = 'Booking alerts enabled - Click to manage';
             }
         }
         
@@ -212,6 +345,15 @@
 
         // Add form submission feedback
         document.addEventListener('DOMContentLoaded', function() {
+            // Clear any cached guest user data
+            localStorage.removeItem('demo_user');
+            const guestKeys = Object.keys(localStorage).filter(key => 
+                key.includes('guest') || key.includes('Guest'));
+            guestKeys.forEach(key => localStorage.removeItem(key));
+            
+            // Load seller information
+            loadSellerInfo();
+            
             const messageForm = document.querySelector('form[action*="message"]');
             const submitButton = document.querySelector('.btn-primary');
             
@@ -239,7 +381,7 @@
                             font-size: 14px;
                             animation: slideIn 0.3s ease-out;
                         `;
-                        tempNotification.innerHTML = '💬 Starting chat conversation...';
+                        tempNotification.innerHTML = '� Starting conversation with seller...';
                         document.body.appendChild(tempNotification);
                         
                         // Remove notification after form submits
@@ -252,6 +394,55 @@
                 });
             }
         });
+        
+        function loadCurrentUser() {
+            // Get current user from session
+            const currentUser = '{{ session.get("user", "") }}';
+            const userNameElement = document.getElementById('currentUserName');
+            
+            if (userNameElement) {
+                if (currentUser && currentUser.trim() !== '' && currentUser  && currentUser !== 'guest_user') {
+                    userNameElement.textContent = currentUser;
+                    userNameElement.style.color = '#007BFF';
+                    userNameElement.style.display = 'inline';
+                } else {
+                    userNameElement.textContent = '';
+                    userNameElement.style.display = 'none';
+                }
+            }
+            
+            // Load seller information
+            loadSellerInfo();
+        }
+        
+        function showSellerProfile() {
+            const sellerName = document.getElementById('sellerNameDisplay').textContent;
+            const itemId = '{{ item_id }}';
+            
+            // Navigate to review page with seller parameter
+            window.location.href = `/review?seller=${encodeURIComponent(sellerName)}&item_id=${itemId}`;
+        }
+        
+        function loadSellerInfo() {
+            // Dynamic seller names based on item ID
+            const itemId = '{{ item_id }}';
+            const sellers = {
+                '0': 'Alex Thompson',
+                '1': 'Sarah Johnson', 
+                '2': 'Mike Chen',
+                '3': 'Emily Davis',
+                '4': 'David Wilson',
+                '5': 'Lisa Garcia'
+            };
+            
+            const sellerName = sellers[itemId] || 'Product Owner';
+            const sellerNameElement = document.getElementById('sellerNameDisplay');
+            
+            if (sellerNameElement) {
+                sellerNameElement.textContent = sellerName;
+            }
+        }
     </script>
+  {{ ajax_script|safe }}
 </body>
 </html>
