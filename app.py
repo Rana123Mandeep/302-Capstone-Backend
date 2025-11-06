@@ -12,8 +12,8 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask import jsonify, request
 from sqlalchemy import func
 from datetime import datetime
-
-
+from datetime import datetime, timedelta
+from threading import Timer
 app = Flask(__name__)  
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift store _db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -387,9 +387,9 @@ def admin():
         "Admin.html"
       
     )
-@app.route("/reminder")
+@app.route("/reminder",)
 def reminder():
-   return render_template("Reminder.html")
+    return render_template("Reminder.html")
 
 @app.route("/products")
 def products():
