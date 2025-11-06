@@ -387,9 +387,18 @@ def admin():
         "Admin.html"
       
     )
-@app.route("/reminder",)
+@app.route("/reminder",  methods=["GET", "POST"])
 def reminder():
-    return render_template("Reminder.html")
+        if request.method == "POST":
+        
+                email = request.form["userEmail"]
+                category = request.form["selectedItem"]
+                custom_category = request.form.get("customCategory")
+                location = request.form["pickupLocation"]
+                custom_location = request.form.get("customLocation")
+                pickup_date = request.form["pickupDate"]
+                pickup_time = request.form["pickupTime"]
+        return render_template("Reminder.html")
 
 @app.route("/products")
 def products():
@@ -480,7 +489,7 @@ def customer_support():
 #         is_in_wishlist=is_in_wishlist
 #     )
 
-@app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
+@app.route("/message_seller", methods=["GET", "POST"])
 def message_seller(item_id):
     if "user_id" not in session:
         flash("Please login first to message sellers.", "warning")
