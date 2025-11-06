@@ -224,7 +224,7 @@
         
         <!--Message Input-->
         <div class="message-input">
-            <form action="{{ url_for('send_message', item_id=item_id) }}" method="POST">
+            <form action="{{ url_for('message_seller', item_id=item_id) }}" method="POST">
                 <textarea name="message" placeholder="Type your message here..." rows="2" required></textarea>
                 <button type="submit" class="btn-primary">Send</button>
             </form>

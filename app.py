@@ -14,25 +14,26 @@ from sqlalchemy import func
 from datetime import datetime
 from datetime import datetime, timedelta
 from threading import Timer
+
 app = Flask(__name__)  
+# Fix database name - Remove space or use underscores
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift store _db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.urandom(24)
-s = URLSafeTimedSerializer(app.secret_key)#for forgot password
+s = URLSafeTimedSerializer(app.secret_key)  # for forgot password
 db = SQLAlchemy()
 db.init_app(app)
-migrate=Migrate(app, db)
-
+migrate = Migrate(app, db)
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME") 
-app.config['MAIL_PASSWORD'] =   os.getenv("MAIL_PASSWORD")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
  
 mail = Mail(app)
 
-#Setup config the upload the file  
+# Setup config for file upload
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -41,10 +42,9 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-#Table for Singnup&Login
+# Table for Signup & Login
 class User(db.Model):
-    __tablename__= "users"
-
+    __tablename__ = "users"
     
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(80), nullable=False)
@@ -53,9 +53,9 @@ class User(db.Model):
     password = db.Column(db.String(512), nullable=False)
 
 
-#Table for upload file in products 
-class Products(db .Model):
-    __tablename__="products"
+# Table for upload file in products 
+class Products(db.Model):
+    __tablename__ = "products"
 
     id = db.Column(db.Integer, primary_key=True)
     Producttitle = db.Column(db.String(100), nullable=False)
@@ -64,11 +64,10 @@ class Products(db .Model):
     condition = db.Column(db.String(50), nullable=False)
     Productdescription = db.Column(db.Text, nullable=False)
     image_filename = db.Column(db.String(200), nullable=False) 
-    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"),nullable=True)# Add seller_id to track product owner 
+    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # Add seller_id to track product owner 
     seller = db.relationship("User", backref="products")
-    
 
-    #Table for Wishlist 
+# Table for Wishlist - Fixed indentation    
 class Wishlist(db.Model):
     __tablename__ = "wishlist"
 
@@ -78,8 +77,6 @@ class Wishlist(db.Model):
 
     user = db.relationship("User", backref="wishlist_items", lazy=True)
     product = db.relationship("Products", backref="wishlisted_by", lazy=True)
-
-
     
 # Table for Messages
 class Message(db.Model):
@@ -97,10 +94,7 @@ class Message(db.Model):
     receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
     product = db.relationship("Products", backref="messages")
 
-
-
-#Table for Reminder
-
+# Table for Reminder
 class Reminder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
@@ -108,7 +102,6 @@ class Reminder(db.Model):
     location = db.Column(db.String(255), nullable=False)
     meeting_time = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-  
 
 # Route for toggle wishlist
 @app.route("/toggle_wishlist/<int:product_id>")
@@ -188,10 +181,8 @@ def wishlist():
         })
     
     return render_template("wishlist.html", products=products)
-        
-    
 
-@app.route("/upload" , methods=["GET", "POST"])
+@app.route("/upload", methods=["GET", "POST"])
 def upload():
     if "user_id" not in session:
         flash("Please login first to upload products.", "warning")
@@ -219,6 +210,7 @@ def upload():
                 Productdescription=Productdescription,
                 image_filename=filename,
                 # seller_id=session["user_id"]  # Always set the seller_id
+                seller_id=str(26)
             )
             db.session.add(new_product)
             db.session.commit()
@@ -228,23 +220,24 @@ def upload():
         else:
             flash("⚠️ Please upload a valid image file (png, jpg, jpeg, gif).", "danger")
  
-    return render_template("Upload.html")            
-      
+    return render_template("Upload.html")
 
+# Fix: Implement or remove the unused function
 @app.route('/user')
 def add_user():
-    temp_first_name = ": sunny"
-    temp_last_name = "gandhi"
-    temp_email = "sunnygandhi548@gmail.com"
-    temp_password = "mash123"  
-
+    # Uncomment this code if you want to add a test user
+    # temp_first_name = "sunny"
+    # temp_last_name = "gandhi"
+    # temp_email = "sunnygandhi548@gmail.com"
+    # temp_password = generate_password_hash("mash123")
+    
     # new_user = User(
     #     first_name=temp_first_name,
     #     last_name=temp_last_name,
     #     email=temp_email,
     #     password=temp_password,
     # )
-
+    
     # try:
     #     db.session.add(new_user)
     #     db.session.commit()
@@ -253,7 +246,8 @@ def add_user():
     #     db.session.rollback()
     #     return f"Error: {e}"
     
-        
+    return "User management page - functionality not implemented"
+    
 @app.route("/Signup", methods=["GET", "POST"])
 def Signup():
     if request.method == "POST":
@@ -264,13 +258,12 @@ def Signup():
         confirm_password = request.form["confirm_password"]
 
         if password != confirm_password:
-            flash("Passwords do not match!", "Retry")
+            flash("Passwords do not match!", "danger")  # Changed "Retry" to "danger" for consistency
             return redirect(url_for("Signup"))
         
         if User.query.filter_by(email=email).first():
             flash("Email already registered. Please login.", "danger")
             return redirect(url_for("Signup"))
-
 
         hashed_password = generate_password_hash(password)
 
@@ -287,60 +280,57 @@ def Signup():
             db.session.commit()
 
             # Send email
-            msg = Message(
-                subject="Account verification 🎉",
-                sender=app.config['MAIL_USERNAME'],
-                recipients=[email]
-            )
-            msg.body = f"""
-            Hi {first_name},
+            try:
+                msg = Message(
+                    subject="Account verification 🎉",
+                    sender=app.config['MAIL_USERNAME'],
+                    recipients=[email]
+                )
+                msg.body = f"""
+                Hi {first_name},
 
-            Congratulations! Your account has been verified and Registered  successfully.
-            You can now log in.
+                Congratulations! Your account has been verified and Registered successfully.
+                You can now log in.
 
-            Best regards,  
-            Thrift Store App Team
-            """
-            mail.send(msg)
+                Best regards,  
+                Thrift Store App Team
+                """
+                mail.send(msg)
+            except Exception as mail_error:
+                # Log the error but don't fail registration
+                print(f"Email sending failed: {mail_error}")
 
             flash("User created successfully! Check your email.", "success")
             return redirect(url_for("login")) 
 
         except Exception as e:
             db.session.rollback()
-            return f"Error: {e}"
-        
+            flash(f"Error creating account: {e}", "danger")
+            return redirect(url_for("Signup"))
         
     return render_template("Signup.html")
-   
-        
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-     
         email = request.form["email"]
         password = request.form["password"]
 
-       
         user = User.query.filter_by(email=email).first()
 
         if not user:
             flash("No account found with that email. Please sign up first.", "danger")
             return redirect(url_for("login"))
 
-   
         if check_password_hash(user.password, password):
             session["user_id"] = user.id
             session["user_name"] = user.first_name
-            flash(f"Welcome back, {user.first_name}! Login successful.",  "success")
+            flash(f"Welcome back, {user.first_name}! Login successful.", "success")
             return redirect(url_for("products")) 
         else:
             flash("Incorrect password. Please try again.", "danger")
             return redirect(url_for("login"))
 
-    
     return render_template("login.html")
 
 @app.route("/logout")
@@ -348,71 +338,45 @@ def logout():
     session.pop("user_id", None)
     session.pop("user_name", None)
     flash("You have been logged out successfully.", "info")
-  
     return redirect(url_for("login"))
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == "POST":
-     
-        email = request.form["email"]
-        password = request.form["password"]
-
-       
-        user = User.query.filter_by(email=email).first()
-
-        if not user:
-            flash("No account found with that email. Please sign up first.", "danger")
-            return redirect(url_for("login"))
-
-   
-        if check_password_hash(user.password, password):
-            session["user_id"] = user.id
-            session["user_name"] = user.first_name
-            flash(f"Welcome back, {user.first_name}! Login successful.",  "success")
-            return redirect(url_for("products")) 
-        else:
-            flash("Incorrect password. Please try again.", "danger")
-            return redirect(url_for("login"))
-
-    
-    return render_template("login.html")
-
+    # Redirect to login handling
+    return redirect(url_for("login"))
 
 @app.route("/admin")
 def admin():
-    
-    return render_template(
-        "Admin.html"
-      
-    )
-@app.route("/reminder",  methods=["GET", "POST"])
+    # Add admin authentication check here
+    return render_template("Admin.html")
+
+@app.route("/reminder")
 def reminder():
-        if request.method == "POST":
-        
-                email = request.form["userEmail"]
-                category = request.form["selectedItem"]
-                custom_category = request.form.get("customCategory")
-                location = request.form["pickupLocation"]
-                custom_location = request.form.get("customLocation")
-                pickup_date = request.form["pickupDate"]
-                pickup_time = request.form["pickupTime"]
-        return render_template("Reminder.html")
+    return render_template("Reminder.html")
 
 @app.route("/products")
 def products():
-    all_products =Products.query.all()
-    return render_template("Products.html" ,products=all_products )
+    all_products = Products.query.all()
+    return render_template("Products.html", products=all_products)
 
 @app.route("/YourListing")
 def YourListing():
-    return render_template("YourListings.html")
+    if "user_id" not in session:
+        flash("Please login first to view your listings.", "warning")
+        return redirect(url_for("login"))
+    
+    # Get products where seller_id is the current user_id
+    #  = Products.query.filter_by(seller_id=session["user_id"]).all()
+    user_products =Products.query.filter_by(seller_id=str(26)).all()
+    return render_template("YourListings.html", products=user_products)
+
+
 @app.route("/dashboard")
 def dashboard():
+    if "user_id" not in session:
+        flash("Please login first to view your dashboard.", "warning")
+        return redirect(url_for("login"))
     return render_template("Dashboard.html")
-
-
 
 @app.route("/category/")
 def all_categories():
@@ -429,65 +393,6 @@ def category(category_name):
 @app.route("/customer-support")
 def customer_support():
     return render_template("CustomerSupport.html")
-
-
-
-
-# # Updated message_seller route
-# @app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
-# def message_seller(item_id):
-#     if "user_id" not in session:
-#         flash("Please login first to message sellers.", "warning")
-#         return redirect(url_for("login"))
-    
-#     user_id = session["user_id"]
-#     item = Products.query.get(item_id)
-    
-#     if not item:
-#         flash("Item not found.", "danger")
-#         return redirect(url_for("products"))
-    
-#     # Check if item is in user's wishlist
-#     is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
-    
-#     if request.method == "POST":
-#         message_content = request.form.get("message")
-        
-#         if message_content:
-#             # Get seller ID from the product
-#             seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
-            
-#             new_message = Message(
-#                 sender_id=user_id,
-#                 receiver_id=seller_id,
-#                 product_id=item_id,
-#                 content=message_content
-#             )
-            
-#             db.session.add(new_message)
-#             db.session.commit()
-            
-#             flash("Message sent successfully!", "success")
-            
-#             # Redirect to chat with the seller
-#             return redirect(url_for("chat_with_seller", item_id=item_id))
-    
-#     # Prepare the item data for template
-#     item_data = {
-#         "name": item.Producttitle,
-#         "price": item.price,
-#         "category": item.category,
-#         "condition": item.condition,
-#         "features": item.Productdescription,
-#         "image": f"uploads/{item.image_filename}"
-#     }
-    
-#     return render_template(
-#         "ItemMessage.html",
-#         item=item_data,
-#         item_id=item_id,
-#         is_in_wishlist=is_in_wishlist
-#     )
 
 @app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
 def message_seller(item_id):
@@ -515,27 +420,34 @@ def message_seller(item_id):
     # Check if item is in user's wishlist
     is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
    
+    # Get seller information
+    seller = User.query.get(item.seller_id)
+    seller_name = f"{seller.first_name} {seller.last_name}" if seller else "Unknown Seller"
+   
     if request.method == "POST":
         message_content = request.form.get("message")
        
-        if message_content:
-            # Get seller ID from the product (no fallback needed since we checked above)
-            seller_id = item.seller_id
+        if not message_content:
+            flash("Message cannot be empty.", "danger")
+            return redirect(url_for("message_seller", item_id=item_id))
+       
+        # Get seller ID from the product
+        seller_id = item.seller_id
            
-            new_message = Message(
-                sender_id=user_id,
-                receiver_id=seller_id,
-                product_id=item_id,
-                content=message_content
-            )
+        new_message = Message(
+            sender_id=user_id,
+            receiver_id=seller_id,
+            product_id=item_id,
+            content=message_content
+        )
            
-            db.session.add(new_message)
-            db.session.commit()
+        db.session.add(new_message)
+        db.session.commit()
            
-            flash("Message sent successfully!", "success")
+        flash("Message sent successfully!", "success")
            
-            # Redirect to chat with the seller
-            return redirect(url_for("chat_with_seller", item_id=item_id))
+        # IMPORTANT: Redirect to chat_with_seller instead of products
+        return redirect(url_for("chat_with_seller", item_id=item_id))
    
     # Prepare the item data for template
     item_data = {
@@ -551,12 +463,12 @@ def message_seller(item_id):
         "ItemMessage.html",
         item=item_data,
         item_id=item_id,
-        is_in_wishlist=is_in_wishlist
+        is_in_wishlist=is_in_wishlist,
+        seller_name=seller_name
     )
 
-# Chat with seller route
+# Chat with seller route - Fixed potential issues with seller_id
 @app.route("/chat_with_seller/<int:item_id>")
-
 def chat_with_seller(item_id):
     if "user_id" not in session:
         flash("Please login first to chat with sellers.", "warning")
@@ -568,12 +480,22 @@ def chat_with_seller(item_id):
     if not item:
         flash("Item not found.", "danger")
         return redirect(url_for("products"))
+        
+    # Check if item has a valid seller
+    if not item.seller_id:
+        flash("This product doesn't have a seller assigned. You cannot send messages.", "warning")
+        return redirect(url_for("products"))
+    
+    # If the user is trying to message their own product
+    if item.seller_id == user_id:
+        flash("This is your own product. You cannot message yourself.", "info")
+        return redirect(url_for("products"))
     
     # Check if item is in user's wishlist
     is_in_wishlist = Wishlist.query.filter_by(user_id=user_id, product_id=item_id).first() is not None
     
     # Get seller ID from the product
-    seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
+    seller_id = item.seller_id
     
     # Get conversation between user and seller for this product
     messages = Message.query.filter(
@@ -613,7 +535,7 @@ def chat_with_seller(item_id):
         messages=messages
     )
 
-# Send message route
+# Send message route - Fixed potential issues with seller_id
 @app.route("/send_message/<int:item_id>", methods=["POST"])
 def send_message(item_id):
     if "user_id" not in session:
@@ -632,8 +554,13 @@ def send_message(item_id):
         flash("Item not found.", "danger")
         return redirect(url_for("products"))
     
+    # Check if item has a valid seller
+    if not item.seller_id:
+        flash("This product doesn't have a seller assigned. You cannot send messages.", "warning")
+        return redirect(url_for("products"))
+    
     # Get seller ID from the product
-    seller_id = item.seller_id if item.seller_id else 1  # Fallback to ID 1 if no seller set
+    seller_id = item.seller_id
     
     new_message = Message(
         sender_id=user_id,
@@ -653,7 +580,8 @@ def item_message(item_id):
     item = Products.query.get(item_id)
     if not item:
         # Handle missing product
-        return f"❌ Item with ID {item_id} not found.", 404
+        flash("Item not found.", "danger")
+        return redirect(url_for("products"))
 
     # Check if item is in user's wishlist
     is_in_wishlist = False
@@ -678,11 +606,7 @@ def item_message(item_id):
         is_in_wishlist=is_in_wishlist
     )
 
-
-
-
-
-#Search Function
+# Search Function
 @app.route("/search")
 def search():
     query = request.args.get('q', '').strip()
@@ -698,72 +622,59 @@ def search():
             (Products.category.ilike(f"%{query}%"))
         ).all()
         
-    message = None if results else "No matching products found."# message if serched item not found 
+    message = None if results else "No matching products found."  # message if searched item not found
 
+    return render_template("Products.html", products=results, message=message)
 
- 
-    return render_template("Products.html", products=results, message= message)
-     
-
-
-
-
-
-@app.route("/forgot-password",methods=["GET","POST"])
+@app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
         email = request.form["email"]
-   
-
-       
+        
         user = User.query.filter_by(email=email).first()
 
         if not user:
-            flash ("No account found with that e-mail", "danger")
+            flash("No account found with that e-mail", "danger")
             return redirect(url_for("forgot_password"))
         
-         # Create token
+        # Create token
         token = s.dumps(email, salt="password-reset")
         print("Generated token:", token)
-
      
         reset_link = url_for("reset_password", token=token, _external=True)
 
-# local development host
+        # local development host
         reset_link = reset_link.replace("0.0.0.0", "127.0.0.1")  
         reset_link = reset_link.replace("localhost", "127.0.0.1")
 
         print("Reset link for testing:", reset_link)
 
-
-
         # Send email
-        msg = Message(
-            subject="🔑Password Reset Request",
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[email]
-        )
-        msg.body = f"""
-        Hi {user.first_name},
+        try:
+            msg = Message(
+                subject="🔑Password Reset Request",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[email]
+            )
+            msg.body = f"""
+            Hi {user.first_name},
 
-      
-        Click the link below to reset your password:
-        {reset_link}
+            Click the link below to reset your password:
+            {reset_link}
 
-        This link will expire in 1 hour.
-         
-         Best regards,  
+            This link will expire in 1 hour.
+             
+            Best regards,  
             Thrift Store App Team
-        """
+            """
 
-    
+            mail.send(msg)
+            flash("✅ A password reset link has been sent to your email.", "success")
+        except Exception as mail_error:
+            print(f"Email sending failed: {mail_error}")
+            flash("Failed to send password reset email. Please try again later.", "danger")
 
-        mail.send(msg)
-
-        flash("✅ A password reset link has been sent to your email.", "success")
         return redirect(url_for("login")) 
-
-
 
     return render_template("ForgotPassword.html")
 
@@ -775,6 +686,7 @@ def reset_password(token):
     except (SignatureExpired, BadSignature):
         flash("The reset link is invalid or has expired.", "danger")
         return redirect(url_for("forgot_password"))
+        
     user = User.query.filter_by(email=email).first()
     if not user:
         flash("Invalid email!", "danger")
@@ -793,18 +705,15 @@ def reset_password(token):
         flash("Password updated successfully!", "success")
         return redirect(url_for('login'))
 
-    return render_template("ResetPassword.html",token=token)
-
+    return render_template("ResetPassword.html", token=token)
 
 @app.route("/reset-password/", methods=["GET", "POST"])
 def reset_password_missing_token():
     flash("Invalid or missing password reset token.", "danger")
     return redirect(url_for("forgot_password"))
 
-
-
-
 if __name__ == "__main__":
-    #  app.run(debug=True)
-
- app.run(debug=True, host="127.0.0.1", port=5000)
+    with app.app_context():
+        # Create tables if they don't exist
+        db.create_all()
+    app.run(debug=True, host="127.0.0.1", port=5000)
