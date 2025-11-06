@@ -19,6 +19,7 @@
         <div class="nav-right">
             <!-- User Icon - Logout -->
             <div class="user-icon-container">
+                <a href="{{ url_for('products') }}" class="back-link">🏠 Products</a>
                 <span class="user-icon" onclick="toggleLogout()" title="Click to show logout option">👤</span>
                 <span class="logout-text" id="logoutText" onclick="logout()" style="display: none;">Logout</span>
             </div>

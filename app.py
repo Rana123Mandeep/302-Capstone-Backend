@@ -218,7 +218,7 @@ def upload():
                 condition=condition,
                 Productdescription=Productdescription,
                 image_filename=filename,
-                seller_id=session["user_id"]  # Always set the seller_id
+                # seller_id=session["user_id"]  # Always set the seller_id
             )
             db.session.add(new_product)
             db.session.commit()
@@ -489,7 +489,7 @@ def customer_support():
 #         is_in_wishlist=is_in_wishlist
 #     )
 
-@app.route("/message_seller", methods=["GET", "POST"])
+@app.route("/message_seller/<int:item_id>", methods=["GET", "POST"])
 def message_seller(item_id):
     if "user_id" not in session:
         flash("Please login first to message sellers.", "warning")
@@ -677,6 +677,8 @@ def item_message(item_id):
         item_id=item_id,
         is_in_wishlist=is_in_wishlist
     )
+
+
 
 
 
