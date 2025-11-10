@@ -65,9 +65,9 @@ The Thrift store (Marketplace) – E-Commerce Web Application
 ---
 
 ## 📁 File Structure
-├── home.html #Main homepage
+├── layout.html #Main homepage
 ├── CSS/
-│ └── home.css # Custom styling for the site
+│ └── layout.css # Custom styling for the site
 ├── Assets/
 │ └── Images/ # Visual assets for categories and products
 └── README.md # You're here!
