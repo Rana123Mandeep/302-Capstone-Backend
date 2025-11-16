@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+
+{% block title %}Upload Product - Marketplace{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="upload-form-wrapper">
+        <h1>Upload Your Product</h1>
+        <p class="upload-description">Fill in the details below to list your product on the marketplace</p>
+        
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="title">Product Title:</label>
+                <input type="text" name="title" id="title" placeholder="Enter product name" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price">Price ($):</label>
+                    <input type="number" name="price" id="price" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <select name="category" id="category" required>
+                        <option value="">Select category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Books">Books</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Home">Home & Garden</option>
+                        <option value="Car">Car</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="condition">Condition:</label>
+                <select name="condition" id="condition" required>
+                    <option value="">Select condition</option>
+                    <option value="New">New</option>
+                    <option value="Like New">Like New</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Poor">Poor</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Product Description:</label>
+                <textarea name="description" id="description" placeholder="Describe your product, include key features and specifications..." rows="4" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="image">Product Image:</label>
+                <div class="file-input-wrapper">
+                    <input type="file" name="image" id="image" accept="image/*" required>
+                    <label for="image" class="file-input-label">
+                        <span class="file-icon">📷</span>
+                        <span class="file-text">Choose image file</span>
+                    </label>
+                </div>
+                <div id="image-preview-container" style="display: none;">
+                    <img id="image-preview" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" onclick="window.location.href='{{ url_for('products') }}'" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Upload Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Image preview functionality
+    document.getElementById('image').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name;
+        const fileText = document.querySelector('.file-text');
+        const previewContainer = document.getElementById('image-preview-container');
+        const preview = document.getElementById('image-preview');
+        
+        if (fileName) {
+            fileText.textContent = fileName;
+            
+            // Show image preview
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                preview.src = event.target.result;
+                previewContainer.style.display = 'block';
+            }
+            
+            reader.readAsDataURL(file);
+        } else {
+            fileText.textContent = 'Choose image file';
+            previewContainer.style.display = 'none';
+        }
+    });
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const price = document.getElementById('price').value;
+        const category = document.getElementById('category').value;
+        const condition = document.getElementById('condition').value;
+        const description = document.getElementById('description').value.trim();
+        const image = document.getElementById('image').files[0];
+        
+        if (!title || !price || !category || !condition || !description || !image) {
+            e.preventDefault();
+            alert('Please fill in all fields and upload an image');
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

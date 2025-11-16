@@ -1,0 +1,514 @@
+{% extends "layout.html" %}
+
+{% block title %}Chat with {{ other_user.first_name }} - Marketplace{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <div class="chat-product">
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-thumbnail">
+                <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.title }}">
+            </a>
+            <div class="product-info">
+                <h2>{{ product.title }}</h2>
+                <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
+            </div>
+        </div>
+        <div class="chat-user">
+            <div class="user-avatar">
+                <span class="avatar-placeholder">👤</span>
+            </div>
+            <div class="user-info">
+                <h3>{{ other_user.first_name }} {{ other_user.last_name }}</h3>
+                <span class="user-status online">
+                    <span class="status-indicator"></span>
+                    {% if product.seller_id == session.user_id %}
+                        Buyer
+                    {% else %}
+                        Seller
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Messages -->
+    <div class="chat-messages" id="chat-messages">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.sender_id == session.user_id %}sent{% else %}received{% endif %}">
+                    <div class="message-content">{{ message.content }}</div>
+                    <div class="message-time">{{ message.timestamp.strftime('%I:%M %p | %b %d') }}</div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-messages">
+                <p>No messages yet. Start the conversation!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Chat Input -->
+    <div class="chat-input">
+        <form action="{{ url_for('send_message') }}" method="POST" id="message-form">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="receiver_id" value="{{ other_user.id }}">
+            
+            <textarea name="content" placeholder="Type your message here..." required></textarea>
+            <button type="submit" class="btn btn-primary">
+                Send
+                <span class="send-icon">➤</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Meeting Setup Modal -->
+<div id="meetingModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Set Up Meeting</h2>
+            <span class="close-modal" onclick="closeMeetingModal()">✕</span>
+        </div>
+        <form action="{{ url_for('reminder') }}" method="POST">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            
+            <div class="form-group">
+                <label for="location">Meeting Location:</label>
+                <input type="text" id="location" name="location" required placeholder="Enter meeting location">
+            </div>
+            
+            <div class="form-group">
+                <label for="meeting_date">Date:</label>
+                <input type="date" id="meeting_date" name="meeting_date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="meeting_time">Time:</label>
+                <input type="time" id="meeting_time" name="meeting_time" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" onclick="closeMeetingModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Set Reminder</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Meeting Template Buttons -->
+<div id="message-templates" class="message-templates" style="display: none;">
+    <div class="templates-header">
+        <h3>Quick Responses</h3>
+        <span class="close-templates" onclick="toggleTemplates()">✕</span>
+    </div>
+    <div class="template-buttons">
+        <button onclick="insertTemplate('Hi! Is this item still available?')">Is it available?</button>
+        <button onclick="insertTemplate('I\'m interested in this product. Would you consider taking $X for it?')">Make an offer</button>
+        <button onclick="insertTemplate('When and where would be a good time to meet?')">Meeting details</button>
+        <button onclick="insertTemplate('Could you provide more pictures or details about this item?')">Request details</button>
+        <button onclick="openMeetingModal()">Set up meeting reminder</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block head_content %}
+<style>
+    .chat-container {
+        max-width: 1000px;
+        margin: 30px auto;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        height: calc(100vh - 150px);
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .chat-product {
+        display: flex;
+        align-items: center;
+    }
+    
+    .product-thumbnail {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-right: 15px;
+    }
+    
+    .product-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .product-info h2 {
+        font-size: 16px;
+        margin: 0 0 5px 0;
+    }
+    
+    .product-price {
+        font-weight: bold;
+        color: #e63946;
+        margin: 0;
+    }
+    
+    .chat-user {
+        display: flex;
+        align-items: center;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 10px;
+    }
+    
+    .avatar-placeholder {
+        font-size: 24px;
+    }
+    
+    .user-info h3 {
+        font-size: 16px;
+        margin: 0 0 5px 0;
+    }
+    
+    .user-status {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4CAF50;
+        margin-right: 5px;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .message {
+        max-width: 70%;
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+    }
+    
+    .sent {
+        align-self: flex-end;
+        background-color: #007bff;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .received {
+        align-self: flex-start;
+        background-color: #e9e9eb;
+        color: #333;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .message-content {
+        margin-bottom: 5px;
+    }
+    
+    .message-time {
+        font-size: 11px;
+        opacity: 0.8;
+        text-align: right;
+    }
+    
+    .no-messages {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        color: #888;
+        font-style: italic;
+    }
+    
+    .chat-input {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        background: white;
+    }
+    
+    .chat-input form {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chat-input textarea {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        resize: none;
+        outline: none;
+        font-family: inherit;
+        max-height: 100px;
+    }
+    
+    .chat-input button {
+        padding: 0 20px;
+        border: none;
+        border-radius: 20px;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: background 0.3s;
+    }
+    
+    .chat-input button:hover {
+        background: #0056b3;
+    }
+    
+    .send-icon {
+        margin-left: 5px;
+        font-size: 14px;
+    }
+    
+    .message-templates {
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        max-width: 800px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 100;
+    }
+    
+    .templates-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .templates-header h3 {
+        margin: 0;
+        font-size: 16px;
+    }
+    
+    .close-templates {
+        cursor: pointer;
+        font-size: 18px;
+        color: #666;
+    }
+    
+    .template-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .template-buttons button {
+        padding: 8px 12px;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .template-buttons button:hover {
+        background: #e0e0e0;
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+    
+    .close-modal {
+        cursor: pointer;
+        font-size: 24px;
+        color: #666;
+    }
+    
+    .modal form {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Scroll to bottom of chat on page load
+    window.onload = function() {
+        scrollToBottom();
+    };
+    
+    function scrollToBottom() {
+        const messageContainer = document.getElementById('chat-messages');
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+    
+    // Show/hide message templates
+    function toggleTemplates() {
+        const templates = document.getElementById('message-templates');
+        if (templates.style.display === 'none') {
+            templates.style.display = 'block';
+        } else {
+            templates.style.display = 'none';
+        }
+    }
+    
+    // Insert template into textarea
+    function insertTemplate(text) {
+        const textarea = document.querySelector('.chat-input textarea');
+        textarea.value = text;
+        textarea.focus();
+        toggleTemplates();
+    }
+    
+    // Open meeting modal
+    function openMeetingModal() {
+        document.getElementById('meetingModal').style.display = 'flex';
+        toggleTemplates();
+        
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('meeting_date').value = tomorrow.toISOString().split('T')[0];
+        
+        // Set default time to noon
+        document.getElementById('meeting_time').value = '12:00';
+    }
+    
+    // Close meeting modal
+    function closeMeetingModal() {
+        document.getElementById('meetingModal').style.display = 'none';
+    }
+    
+    // Show templates button
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('message-form');
+        const textarea = document.querySelector('.chat-input textarea');
+        
+        // Add templates button
+        const templatesButton = document.createElement('button');
+        templatesButton.type = 'button';
+        templatesButton.className = 'btn-templates';
+        templatesButton.innerHTML = '💬';
+        templatesButton.title = 'Quick Responses';
+        templatesButton.onclick = toggleTemplates;
+        
+        // Insert before the send button
+        form.insertBefore(templatesButton, form.querySelector('button[type="submit"]'));
+        
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+            if (textarea.value.trim() === '') {
+                e.preventDefault();
+                alert('Please enter a message');
+                return;
+            }
+            
+            // Append message to chat immediately for instant feedback
+            const messagesContainer = document.getElementById('chat-messages');
+            const noMessages = document.querySelector('.no-messages');
+            
+            if (noMessages) {
+                noMessages.remove();
+            }
+            
+            const now = new Date();
+            const formattedTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + 
+                                 ' | ' + 
+                                 now.toLocaleDateString([], {month: 'short', day: 'numeric'});
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message sent';
+            messageElement.innerHTML = `
+                <div class="message-content">${textarea.value}</div>
+                <div class="message-time">${formattedTime}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            scrollToBottom();
+        });
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('meetingModal');
+            if (event.target === modal) {
+                closeMeetingModal();
+            }
+        };
+    });
+</script>
+{% endblock %}

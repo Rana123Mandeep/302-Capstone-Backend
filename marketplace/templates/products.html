@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}Marketplace - Browse Products{% endblock %}
+
+{% block content %}
+<div class="products-container">
+    <div class="products-header">
+        <h1>
+            {% if category %}
+                {{ category|title }} Products
+            {% elif search_query %}
+                Search Results: "{{ search_query }}"
+            {% else %}
+                Browse Products
+            {% endif %}
+        </h1>
+        
+        {% if category %}
+            <p class="subheading">Explore our selection of {{ category|lower }} items</p>
+        {% elif search_query %}
+            <p class="subheading">Showing results for "{{ search_query }}"</p>
+        {% else %}
+            <p class="subheading">Find what you're looking for at great prices</p>
+        {% endif %}
+    </div>
+    
+    <div class="products-grid">
+        {% if products %}
+            {% for product in products %}
+                <div class="product-card">
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-link">
+                        <div class="product-image">
+                            <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.title }}">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">{{ product.title }}</h3>
+                            <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
+                            <p class="product-category">{{ product.category }}</p>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-products">
+                {% if category %}
+                    <p>No products found in the {{ category|lower }} category.</p>
+                {% elif search_query %}
+                    <p>No products found matching "{{ search_query }}".</p>
+                {% else %}
+                    <p>No products available at the moment.</p>
+                {% endif %}
+                
+                <a href="{{ url_for('products') }}" class="btn btn-primary">View All Products</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

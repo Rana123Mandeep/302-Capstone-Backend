@@ -1,0 +1,205 @@
+{% extends "layout.html" %}
+
+{% block title %}Messages - Marketplace{% endblock %}
+
+{% block content %}
+<div class="messages-container">
+    <div class="messages-header">
+        <h1>💬 Messages</h1>
+        <p class="messages-count">{{ conversations|length }} conversation{% if conversations|length != 1 %}s{% endif %}</p>
+    </div>
+
+    <div class="conversations-container">
+        {% if conversations %}
+            <div class="conversations-list">
+                {% for convo in conversations %}
+                    <div class="conversation-card">
+                        <div class="conversation-product">
+                            <img src="{{ url_for('static', filename='uploads/' + convo.product.image_filename) }}" alt="{{ convo.product.title }}">
+                        </div>
+                        <div class="conversation-details">
+                            <div class="conversation-title">
+                                <h3>{{ convo.product.title }}</h3>
+                                {% if convo.unread_count > 0 %}
+                                    <span class="unread-badge">{{ convo.unread_count }}</span>
+                                {% endif %}
+                            </div>
+                            <p class="conversation-with">
+                                {% if convo.product.seller_id == session.user_id %}
+                                    <span class="user-role">Buyer:</span> {{ convo.other_user.first_name }} {{ convo.other_user.last_name }}
+                                {% else %}
+                                    <span class="user-role">Seller:</span> {{ convo.other_user.first_name }} {{ convo.other_user.last_name }}
+                                {% endif %}
+                            </p>
+                            <p class="conversation-preview">{{ convo.last_message|truncate(50) }}</p>
+                            <div class="conversation-footer">
+                                <span class="conversation-time">{{ convo.timestamp.strftime('%b %d, %H:%M') }}</span>
+                                <a href="{{ url_for('chat', product_id=convo.product.id, other_user_id=convo.other_user.id) }}" class="btn-chat">
+                                    View Conversation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-messages">
+                <div class="empty-icon">💬</div>
+                <h2>No Messages Yet</h2>
+                <p>Start conversations with sellers or buyers to see them here.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">Browse Products</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block head_content %}
+<style>
+    .messages-container {
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+    
+    .messages-header {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+    
+    .messages-count {
+        color: #666;
+        font-size: 16px;
+        margin-top: 5px;
+    }
+    
+    .conversations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .conversation-card {
+        display: flex;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .conversation-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .conversation-product {
+        flex: 0 0 120px;
+        height: 120px;
+    }
+    
+    .conversation-product img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .conversation-details {
+        flex: 1;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .conversation-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    
+    .conversation-title h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+    
+    .unread-badge {
+        background: #e74c3c;
+        color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .conversation-with {
+        margin: 5px 0;
+        color: #444;
+        font-size: 14px;
+    }
+    
+    .user-role {
+        font-weight: bold;
+        color: #666;
+    }
+    
+    .conversation-preview {
+        margin: 5px 0 10px 0;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .conversation-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+    }
+    
+    .conversation-time {
+        color: #888;
+        font-size: 12px;
+    }
+    
+    .btn-chat {
+        padding: 6px 12px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+    
+    .btn-chat:hover {
+        background: #0056b3;
+    }
+    
+    .empty-messages {
+        text-align: center;
+        padding: 50px 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+    
+    .empty-messages h2 {
+        margin-top: 0;
+    }
+    
+    .empty-messages p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}

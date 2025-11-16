@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ product.title }} - Marketplace{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <div class="product-detail">
+        <div class="product-image-container">
+            <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.title }}" class="product-detail-image">
+        </div>
+        
+        <div class="product-info-container">
+            <h1 class="product-title">{{ product.title }}</h1>
+            
+            <div class="product-meta">
+                <span class="product-category">Category: {{ product.category }}</span>
+                <span class="product-condition">Condition: {{ product.condition }}</span>
+            </div>
+            
+            <div class="product-price-container">
+                <span class="product-price">${{ "%.2f"|format(product.price) }}</span>
+            </div>
+            
+            <div class="seller-info">
+                <h3>Seller Information</h3>
+                <div class="seller-card">
+                    <div class="seller-avatar">
+                        <span class="avatar-placeholder">👤</span>
+                    </div>
+                    <div class="seller-details">
+                        <h4 class="seller-name">{{ product.seller.first_name }} {{ product.seller.last_name }}</h4>
+                        <span class="seller-status">
+                            <span class="status-indicator active"></span>
+                            Active Seller
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-actions">
+                {% if session.get('user_id') %}
+                    {% if session.get('user_id') != product.seller_id %}
+                        <a href="{{ url_for('contact_seller', product_id=product.id) }}" class="btn btn-primary btn-lg">
+                            <span class="btn-icon">💬</span>
+                            Contact Seller
+                        </a>
+                        
+                        <button onclick="toggleWishlist({{ product.id }})" class="btn btn-wishlist" id="wishlistBtn">
+                            {% if is_in_wishlist %}
+                                <span class="wishlist-icon active">★</span>
+                                Remove from Wishlist
+                            {% else %}
+                                <span class="wishlist-icon">☆</span>
+                                Add to Wishlist
+                            {% endif %}
+                        </button>
+                    {% else %}
+                        <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-secondary">
+                            <span class="btn-icon">✏️</span>
+                            Edit Product
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                        <span class="btn-icon">🔒</span>
+                        Login to Contact Seller
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="product-details-section">
+        <h2>Product Description</h2>
+        <div class="product-description">
+            {{ product.description|nl2br }}
+        </div>
+    </div>
+</div>
+
+<!-- Notification Popup -->
+<div id="notification-popup" class="notification-popup" style="display: none;">
+    <div class="notification-content">
+        <span class="notification-icon" id="notificationIcon">⭐</span>
+        <span class="notification-text" id="notificationText">Product added to wishlist!</span>
+        <span class="close-notification" onclick="closeNotification()">✕</span>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    function toggleWishlist(productId) {
+        fetch(`/toggle-wishlist/${productId}?ajax=1`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const wishlistBtn = document.getElementById('wishlistBtn');
+                const wishlistIcon = wishlistBtn.querySelector('.wishlist-icon');
+                const notificationText = document.getElementById('notificationText');
+                const notificationIcon = document.getElementById('notificationIcon');
+                
+                if (data.is_in_wishlist) {
+                    wishlistIcon.textContent = '★';
+                    wishlistIcon.classList.add('active');
+                    wishlistBtn.innerHTML = '<span class="wishlist-icon active">★</span> Remove from Wishlist';
+                    notificationText.textContent = 'Product added to wishlist!';
+                    notificationIcon.textContent = '⭐';
+                } else {
+                    wishlistIcon.textContent = '☆';
+                    wishlistIcon.classList.remove('active');
+                    wishlistBtn.innerHTML = '<span class="wishlist-icon">☆</span> Add to Wishlist';
+                    notificationText.textContent = 'Product removed from wishlist!';
+                    notificationIcon.textContent = '🗑️';
+                }
+                
+                showNotification();
+            } else {
+                alert(data.message || 'Failed to update wishlist');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating wishlist');
+        });
+    }
+    
+    function showNotification() {
+        const popup = document.getElementById('notification-popup');
+        popup.style.display = 'flex';
+        
+        setTimeout(() => {
+            closeNotification();
+        }, 3000);
+    }
+    
+    function closeNotification() {
+        const popup = document.getElementById('notification-popup');
+        popup.style.display = 'none';
+    }
+</script>
+{% endblock %}
+{% endblock %}

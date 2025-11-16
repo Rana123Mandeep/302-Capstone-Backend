@@ -102,6 +102,63 @@ class Reminder(db.Model):
     location = db.Column(db.String(255), nullable=False)
     meeting_time = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+ #Rote for reminder 
+@app.route("/reminder", methods=["GET", "POST"])
+def reminder():
+    if request.method == "POST":
+        email = request.form["email"]
+        category = request.form["category"]
+        location = request.form["location"]
+        meeting_time_str = request.form["meeting_time"]
+        meeting_time = datetime.strptime(meeting_time_str, "%Y-%m-%dT%H:%M")
+
+        custom_location = request.form.get("customLocation")
+        custom_category = request.form.get("customCategory")
+
+        if category == "other":
+                category = custom_category
+        if location == "other":
+                location = custom_location
+
+
+
+        new_reminder = Reminder(
+                email=email,
+                category=category,
+                location=location,
+                meeting_time=meeting_time
+            )
+
+    try:  
+            
+                db.session.add(new_reminder)
+                db.session.commit()
+                msg1 = Message(
+                    subject="Reminder Created Successfully ✅",
+                    sender=app.config["MAIL_USERNAME"],
+                    recipients=[email]
+                )
+                msg1.body = f"""
+        Hi,
+
+        Your reminder has been created successfully! 🎉
+
+        📅 Meeting Time: {meeting_time.strftime('%Y-%m-%d %H:%M')}
+        📍 Location: {location}
+        🏷️ Category: {category}
+
+        You will receive a reminder 10 minutes before your meeting.
+        """
+                mail.send(msg1)
+
+    except Exception as e:
+                db.session.rollback()
+                flash(f"Error creating Reminder: {e}", "danger")
+                return redirect(url_for("Reminder"))
+    
+    return render_template("Reminder.html")
+        
+
 
 # Route for toggle wishlist
 @app.route("/toggle_wishlist/<int:product_id>")
@@ -222,7 +279,8 @@ def upload():
  
     return render_template("Upload.html")
 
-# Fix: Implement or remove the unused function
+
+
 @app.route('/user')
 def add_user():
     # Uncomment this code if you want to add a test user
@@ -350,9 +408,7 @@ def admin():
     # Add admin authentication check here
     return render_template("Admin.html")
 
-@app.route("/reminder")
-def reminder():
-    return render_template("Reminder.html")
+
 
 @app.route("/products")
 def products():
