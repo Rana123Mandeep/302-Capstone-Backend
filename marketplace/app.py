@@ -4,15 +4,15 @@ from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from werkzeug.utils import secure_filename
-import os
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from dotenv import load_dotenv
 from flask import get_flashed_messages
-
-# Load environment variables
+import os
+from dotenv import load_dotenv
 load_dotenv()
+
+
 
 app = Flask(__name__)
 
@@ -224,10 +224,8 @@ def signup():
             # Send welcome email
             try:
                 msg = Message(
-                    # "Welcome to Thrift store Marketplace!",
-                    # sender=app.config['MAIL_USERNAME'],
-                    # recipients=[email]
-                     subject="Account verification 🎉",
+                   
+                  "Account verification 🎉",
                     sender=app.config['MAIL_USERNAME'],
                     recipients=[email]
                 )
@@ -253,6 +251,8 @@ def signup():
             return redirect(url_for("signup"))
             
     return render_template("signup.html")
+
+
 
 @app.route("/logout")
 def logout():
@@ -753,9 +753,9 @@ def contact_seller(product_id):
         return redirect(url_for("products"))
     
     # Check if user is trying to message themselves
-    if product.seller_id == user_id:
-        flash("You cannot message yourself", "info")
-        return redirect(url_for("product_detail", product_id=product_id))
+    if product.seller_id == user_id:f
+    flash("You cannot message yourself", "info")
+    return redirect(url_for("product_detail", product_id=product_id))
     
     if request.method == "POST":
         content = request.form.get("message")
