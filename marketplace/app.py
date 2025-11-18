@@ -225,7 +225,7 @@ def signup():
             try:
                 msg = Message(
                    
-                  "Account verification 🎉",
+                  subject="Account verification 🎉",
                     sender=app.config['MAIL_USERNAME'],
                     recipients=[email]
                 )
