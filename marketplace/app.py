@@ -140,6 +140,7 @@ class Reminder(db.Model):
     email = db.Column(db.String(120), nullable=False)
     location = db.Column(db.String(255), nullable=True)
     meeting_time = db.Column(db.DateTime, nullable=True)
+    reminder_sent = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship("User", backref="reminders")
