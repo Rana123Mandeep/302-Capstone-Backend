@@ -40,11 +40,11 @@
             <div class="product-actions">
                 {% if session.get('user_id') %}
                     {% if session.get('user_id') != product.seller_id %}
-                        <a href="{{ url_for('contact_seller', product_id=product.id) }}" class="btn btn-primary btn-lg">
-                            <span class="btn-icon">💬</span>
-                            Contact Seller
-                        </a>
-                        
+                      <a href="{{ url_for('chat', product_id=product.id, other_user_id=product.seller_id) }}"
+   class="btn btn-primary btn-lg">
+    <span class="btn-icon">💬</span>
+    Contact Seller
+</a>
                         <button onclick="toggleWishlist({{ product.id }})" class="btn btn-wishlist" id="wishlistBtn">
                             {% if is_in_wishlist %}
                                 <span class="wishlist-icon active">★</span>
