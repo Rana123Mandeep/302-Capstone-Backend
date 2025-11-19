@@ -18,8 +18,21 @@ load_dotenv()
 app = Flask(__name__)
 
 # Database Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift'
+# our database uri
+if 'RDS_DB_NAME' in os.environ:
+    app.config['SQLALCHEMY_DATABASE_URI'] = \
+        'postgresql://{username}:{password}@{host}:{port}/{database}'.format(
+        username=os.environ['RDS_USERNAME'],
+        password=os.environ['RDS_PASSWORD'],
+        host=os.environ['RDS_HOSTNAME'],
+        port=os.environ['RDS_PORT'],
+        database=os.environ['RDS_DB_NAME'],
+    )
+else:
+    # our database uri
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # Email Configuration
