@@ -1047,16 +1047,28 @@ def reminder():
             
             Location: {location}
             
-            We'll send you a reminder before the meeting.
-            
+                    
+            Safety Tips:
+            • Meet in a public, well-lit place
+            • Bring a friend if possible
+            • Inspect the item carefully before paying
+            • Trust your instincts
+                        
             Regards,
             The Thrift store Marketplace Team
             """
+           
             mail.send(msg)
+            print(f"✅ Confirmation email sent to {user.email}")
         except Exception as e:
-            print(f"Failed to send confirmation email: {e}")
+            print(f"❌ Failed to send confirmation email: {e}")
+            # Don't fail the reminder creation if email fails
         
-        flash("Reminder set successfully! We'll email you a reminder before the meeting.", "success")
+        flash(
+            f"Meeting scheduled for {meeting_datetime.strftime('%B %d at %I:%M %p')}! "
+            "Confirmation email sent. You'll receive a reminder 1 hour before.", 
+            "success"
+        )
         return redirect(url_for("product_detail", product_id=product_id))
     
     # GET request - show form
@@ -1067,8 +1079,11 @@ def reminder():
     
     product = Product.query.get_or_404(product_id)
     
-    return render_template("reminder.html", product=product)
-
+    # Pass tomorrow's date to the template for minimum date
+    from datetime import timedelta
+    tomorrow = datetime.now() + timedelta(days=1)
+    
+    return render_template("reminder.html", product=product, tomorrow=tomorrow)
 @app.route("/customer-support")
 def customer_support():
     return render_template("customer_support.html")
