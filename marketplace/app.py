@@ -753,8 +753,8 @@ def contact_seller(product_id):
         return redirect(url_for("products"))
     
     # Check if user is trying to message themselves
-    if product.seller_id == user_id:f
-    flash("You cannot message yourself", "info")
+    if product.seller_id == user_id:
+     flash("You cannot message yourself", "info")
     return redirect(url_for("product_detail", product_id=product_id))
     
     if request.method == "POST":
