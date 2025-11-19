@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail, Message
+from flask_mail import Mail, Message as MailMessage
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+
 from flask import get_flashed_messages
 import os
 from dotenv import load_dotenv
@@ -46,6 +47,25 @@ s = URLSafeTimedSerializer(app.secret_key)
 # Helper function for file uploads
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+mail = Mail(app)
+ 
+print(f"MAIL_USERNAME: {app.config['MAIL_USERNAME']}")
+print(f"MAIL_PASSWORD exists: {app.config['MAIL_PASSWORD'] is not None}")
+ 
+with app.app_context():
+    try:
+        msg = MailMessage(  # Changed from Message
+            subject="Test Email from Thrift Store",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[os.getenv("MAIL_USERNAME")]
+        )
+        msg.body = "This is a test email. If you receive this, your email configuration is working!"
+        mail.send(msg)
+        print("✓ Test email sent successfully!")
+    except Exception as e:
+        print(f"✗ Error sending email: {str(e)}")
+    
 
 # ================ DATABASE MODELS ================
 
@@ -223,9 +243,9 @@ def signup():
             
             # Send welcome email
             try:
-                msg = Message(
+                msg = MailMessage(
                    
-                  subject="Account verification 🎉",
+                  "Account verification 🎉",
                     sender=app.config['MAIL_USERNAME'],
                     recipients=[email]
                 )
@@ -252,7 +272,19 @@ def signup():
             
     return render_template("signup.html")
 
-
+@app.route("/test-email")
+def test_email():
+    try:
+        msg = MailMessage(
+            "Test Email from Flask",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=["msinghthrift@gmail.com"]
+        )
+        msg.body = "This is a test email. If you receive this, everything is working!"
+        mail.send(msg)
+        return "✅ Email sent successfully! Check your inbox (and spam folder)."
+    except Exception as e:
+        return f"❌ Failed to send email: {str(e)}"
 
 @app.route("/logout")
 def logout():
@@ -280,7 +312,7 @@ def forgot_password():
         
         # Send email
         try:
-            msg = Message(
+            msg = MailMessage(
                 "Password Reset Request",
                 sender=app.config['MAIL_USERNAME'],
                 recipients=[email]
