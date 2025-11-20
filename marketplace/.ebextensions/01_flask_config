@@ -13,6 +13,6 @@ option_settings:
     02_migratedb:
     command: "source /var/app/venv/*/bin/activate && flask db migrate"
     leader_only: true
-    # 03_upgradedb:
-#     command: "source /var/app/venv/*/bin/activate && flask db upgrade"
-#     leader_only: true
+    03_upgradedb:
+    command: "source /var/app/venv/*/bin/activate && flask db upgrade"
+    leader_only: true
