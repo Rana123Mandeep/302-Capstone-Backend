@@ -197,9 +197,12 @@ def inject_now():
     return {'now': datetime.utcnow()}
 
 # Home & authentication routes
-@app.route("/")
-def index():
-    return redirect(url_for("login"))
+# @app.route("/")
+# def index():
+#     return redirect(url_for("login"))
+@app.route("/health")
+def health():
+    return "OK", 200
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
