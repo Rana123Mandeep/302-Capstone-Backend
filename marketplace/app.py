@@ -272,6 +272,11 @@ def signup():
                 Welcome to  Thrift store Marketplace! Your account has been created successfully.
                 
                 Happy shopping and selling!
+                   Safety Tips:
+            • Meet in a public, well-lit place
+            • Bring a friend if possible
+            • Inspect the item carefully before paying
+            • Trust your instincts
                 
                 Regards,
                 The Thrift store Marketplace Team
@@ -1065,11 +1070,7 @@ def reminder():
             Location: {location}
             
                     
-            Safety Tips:
-            • Meet in a public, well-lit place
-            • Bring a friend if possible
-            • Inspect the item carefully before paying
-            • Trust your instincts
+         
                         
             Regards,
             The Thrift store Marketplace Team
