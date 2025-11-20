@@ -1140,5 +1140,6 @@ if __name__ == "__main__":
             db.session.add(admin)
             db.session.commit()
             print("Admin user created successfully!")
+            
         
     app.run(debug=True, host="127.0.0.1", port=5000)

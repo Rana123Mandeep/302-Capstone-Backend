@@ -5,10 +5,10 @@ option_settings:
     WSGIPath: "app:app"
 
 # container_commands:
-container_commands:
-  01_create_tables:
-    command: "source /var/app/venv/*/bin/activate && cd /var/app/current && python -c 'from app import db; db.create_all()'"
-    leader_only: true
+# container_commands:
+#   01_create_tables:
+#     command: "source /var/app/venv/*/bin/activate && cd /var/app/current && python -c 'from app import db; db.create_all()'"
+#     leader_only: true
 #   01_stamphead:
 #     command: "source /var/app/venv/*/bin/activate && flask db stamp head"
 #     leader_only: true
