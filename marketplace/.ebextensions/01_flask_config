@@ -10,9 +10,9 @@ option_settings:
   01_stamphead:
     command: "source /var/app/venv/*/bin/activate && flask db stamp head"
     leader_only: true
-    # 02_migratedb:
-    # command: "source /var/app/venv/*/bin/activate && flask db migrate"
-    # leader_only: true
-#     03_upgradedb:
+    02_migratedb:
+    command: "source /var/app/venv/*/bin/activate && flask db migrate"
+    leader_only: true
+    # 03_upgradedb:
 #     command: "source /var/app/venv/*/bin/activate && flask db upgrade"
 #     leader_only: true
