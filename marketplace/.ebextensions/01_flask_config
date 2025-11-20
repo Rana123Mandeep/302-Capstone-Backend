@@ -1,8 +1,8 @@
 # option_settings:
-#   aws:elasticbeanstalk:application:environment:
-#     PYTHONPATH: "/var/app/current:$PYTHONPATH"
-#   aws:elasticbeanstalk:container:python:
-#     WSGIPath: "app:app"
+  aws:elasticbeanstalk:application:environment:
+    PYTHONPATH: "/var/app/current:$PYTHONPATH"
+  aws:elasticbeanstalk:container:python:
+    WSGIPath: "app:app"
 
 # # container_commands:
 # # container_commands:
