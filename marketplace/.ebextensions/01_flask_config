@@ -1,0 +1,18 @@
+# option_settings:
+#   aws:elasticbeanstalk:application:environment:
+#     PYTHONPATH: "/var/app/current:$PYTHONPATH"
+#   aws:elasticbeanstalk:container:python:
+#     WSGIPath: "app:app"
+
+# # container_commands:
+# # container_commands:
+  
+#   # 01_stamphead:
+#   #   command: "source /var/app/venv/*/bin/activate && flask db stamp head"
+#   #   leader_only: true
+#   #   02_migratedb:
+#   #   command: "source /var/app/venv/*/bin/activate && flask db migrate"
+#   #   leader_only: true
+#   #   03_upgradedb:
+#   #   command: "source /var/app/venv/*/bin/activate && flask db upgrade"
+#   #   leader_only: true
