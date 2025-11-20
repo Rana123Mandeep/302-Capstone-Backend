@@ -30,10 +30,12 @@ if 'RDS_DB_NAME' in os.environ:
     )
 else:
     # our database uri
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift'
+     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/thrift.db'
+     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mandeepsingh@localhost:5432/thrift'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+
 
 # Email Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
