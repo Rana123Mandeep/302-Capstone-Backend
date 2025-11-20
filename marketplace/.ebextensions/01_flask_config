@@ -4,3 +4,7 @@ option_settings:
   aws:elasticbeanstalk:container:python:
     WSGIPath: "app:app"
 
+container_commands:
+  01_stamphead:
+    command: "source /var/app/venv/*/bin/activate && flask db stamp head"
+    leader_only: true
