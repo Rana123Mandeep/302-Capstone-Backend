@@ -1,1 +1,6 @@
-marketplace/awsthriftadmin_accessKeys.csv 
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+"awsthriftadmin_accessKeys.csv" 
