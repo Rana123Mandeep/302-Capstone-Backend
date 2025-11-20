@@ -20,18 +20,15 @@ app = Flask(__name__)
 # Database Configuration
 # our database uri
 if 'RDS_DB_NAME' in os.environ:
-    # app.config['SQLALCHEMY_DATABASE_URI'] = \
-    #     'postgresql://{username}:{password}@{host}:{port}/{database}'.format(
-    #     username=os.environ['RDS_USERNAME'],
-    #     password=os.environ['RDS_PASSWORD'],
-    #     host=os.environ['RDS_HOSTNAME'],
-    #     port=os.environ['RDS_PORT'],
-    #     database=os.environ['RDS_DB_NAME'],
-    # )
-    app.config['SQLALCHEMY_DATABASE_URI'] = (
-        f"postgresql://{os.environ['RDS_USERNAME']}:{os.environ['RDS_PASSWORD']}"
-        f"@{os.environ['RDS_HOSTNAME']}:{os.environ['RDS_PORT']}/{os.environ['RDS_DB_NAME']}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = \
+        'postgresql://{username}:{password}@{host}:{port}/{database}'.format(
+        username=os.environ['RDS_USERNAME'],
+        password=os.environ['RDS_PASSWORD'],
+        host=os.environ['RDS_HOSTNAME'],
+        port=os.environ['RDS_PORT'],
+        database=os.environ['RDS_DB_NAME'],
     )
+    
 else:
     # our database uri
      app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/thrift.db'
