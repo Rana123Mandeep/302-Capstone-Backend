@@ -71,7 +71,7 @@ print(f"MAIL_PASSWORD exists: {app.config['MAIL_PASSWORD'] is not None}")
  
 with app.app_context():
     try:
-        msg = MailMessage(  # Changed from Message
+        msg = MailMessage(  
             subject="Test Email from Thrift Store",
             sender=app.config['MAIL_USERNAME'],
             recipients=[os.getenv("MAIL_USERNAME")]
